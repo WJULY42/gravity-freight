@@ -384,6 +384,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
   <div id="creGrid">
     <button class="xbtn" id="cAllNode"><b>解锁全部星域</b><small>九星即刻接入轨道网</small></button>
     <button class="xbtn" id="cAllTech"><b>完成全部研发</b><small>舱容/推进满级 + 加注</small></button>
+    <button class="xbtn" id="cAllGalaxy"><b>解锁全部星系</b><small>五大恒星系统即刻开放跃迁</small></button>
     <button class="xbtn" id="cParts"><b>补满零件仓库</b><small>罐体/动力/航电 各 4 件</small></button>
     <button class="xbtn" id="cRocket"><b>立即总装一发</b><small>跳过生产线直接入列</small></button>
     <button class="xbtn" id="cContract"><b>生成新合同</b><small>无视待办上限</small></button>
@@ -492,6 +493,7 @@ let currentGalaxyIdx=0;
 let galaxyTransition=0; // 0=无过渡，>0=过渡中
 let galaxyTargetIdx=0;
 let galaxyAnimTime=0;
+const galaxyUnlocked=[true,false,false,false,false]; // 星系解锁状态 [太阳系,半人马座α,天狼星，鲸鱼座τ,TRAPPIST-1]
 const GALAXY_ANIM_DUR=1200; // 动画时长ms
 const keys=new Set();
 const PAD_A=-2.0, LZ_A=-1.32;
@@ -1236,12 +1238,12 @@ function openReport(){
 
 // 星系地图界面
 function showGalaxyMap(){
-  // 检查解锁状态：如果玩家在任意非太阳系节点有设施，则解锁对应星系
+  // 检查解锁状态：使用 galaxyUnlocked 数组或开发者模式解锁
   const hasInGalaxy = (gId) => nodes.some(n => n.galaxy===gId && !n.locked && (n.prod || n.cons));
   
   const mapHtml=`<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:560px;margin:0 auto">
     ${galaxies.map((g,i)=>{
-      const unlocked = i===0 || hasInGalaxy(g.id);
+      const unlocked = galaxyUnlocked[i] || (i===0) || hasInGalaxy(g.id);
       const isCur = currentGalaxyIdx===i;
       const btnBg = isCur ? 'rgba(83,215,224,0.25)' : (unlocked ? 'rgba(35,53,82,0.6)' : 'rgba(20,25,35,0.7)');
       const btnBorder = isCur ? 'var(--cyan)' : (unlocked ? 'var(--line)' : 'rgba(60,70,90,0.3)');
@@ -2204,6 +2206,9 @@ document.getElementById('cAllNode').addEventListener('click',()=>creAct(()=>{
 document.getElementById('cAllTech').addEventListener('click',()=>creAct(()=>{
   for(const id in TECHS)techs[id]=true;applyTechs();prog.fuelUp=true;
   log('全部研发完成','good');toast('舱容/推进满级 + 加注完成');}));
+document.getElementById('cAllGalaxy').addEventListener('click',()=>creAct(()=>{
+  for(let i=0;i<galaxies.length;i++) galaxyUnlocked[i]=true;
+  log('全部星系已解锁','good');toast('五大恒星系统开放跃迁');}));
 document.getElementById('cParts').addEventListener('click',()=>creAct(()=>{
   pad.stock={tank:4,eng:4,avi:4};toast('零件仓库已补满');}));
 document.getElementById('cRocket').addEventListener('click',()=>creAct(()=>{

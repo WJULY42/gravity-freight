@@ -11,39 +11,40 @@ __pycache__/
 *.out
 
 # Dependencies
-.venv/
-venv/
 node_modules/
-.mypy_cache/
-.pytest_cache/
-dist/
-build/
-target/
-.gradle/
-
-# Logs and temp files
-*.log
-*.tmp
-*.swp
-*.swo
-
-# Environment
+venv/
+.venv/
 .env
 .env.local
 *.env.*
 
+# Build directories
+dist/
+build/
+target/
+
+# Python specific
+*.pyc
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+.coverage
+coverage/
+htmlcov/
+
 # Editors
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # System files
 .DS_Store
 Thumbs.db
 
-# Coverage
-coverage/
-htmlcov/
-.coverage
+# Logs and temp files
+*.log
+*.tmp
 
 # Compressed files
 *.zip
@@ -68,3 +69,346 @@ htmlcov/
 *.tar.bz2
 *.tar.xz
 *.tar.zst
+
+# Gradle
+.gradle/
+
+# JVM
+.classpath
+.project
+.settings/
+
+# Temporary files
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+\#.\#*
+
+# OS generated files
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+iTunes_Control/
+Thumbs.db
+Thumbs.db:encryptable
+WindowsThumbnailCache.db
+
+# IDE specific
+nbproject/
+nbbuild/
+nbdist/
+nbs/
+*.nbp
+.classpath
+.project
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+.recommenders
+
+# Testing
+.pytest_cache/
+.tox/
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+htmlcov/
+
+# Documentation
+docs/_build/
+
+# Distribution / packaging
+.Python
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# IDE
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/recommendations.json
+.idea/*
+!.idea/migrations/
+.vs/
+*.swp
+*.swo
+*~
+
+# Node
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.sass-cache/
+connect.lock
+webpack.config.js
+.webpack.config.js
+npm-shrinkwrap.json
+package-lock.json
+.npm
+.nyc_output
+.nyc_coverage
+coverage/
+node/
+node_modules/
+
+# Bower
+bower_components/
+
+# Grunt
+Gruntfile.js
+grunt.js
+
+# Gulp
+gulpfile.js
+.gulp-cache/
+
+# Webpack
+webpack.config.js
+.webpack.config.js
+
+# Ember
+.ember-cli
+.ember-hbs.min.js
+.ember-template-compiler.js
+
+# Angular
+.angular-cli.json
+.angular-config.json
+
+# React
+.next/
+res/
+vercel.json
+netlify.toml
+.now/
+
+# Vue
+.vuepress/dist
+static-nuxt
+.nuxt
+dist/
+
+# Meteor
+.meteor/local/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+.static/
+staticfiles/
+.envrc
+.requirements.txt.swp
+.safety-policy.yml
+.secret-key
+.settings-local.yml
+fixture_data.json
+node_modules/
+requirements/*.txt
+staticfiles/
+.media/
+.sass-cache/
+coverage/
+.Coverage.xml
+coverage.xml
+instance/
+.webassets-cache
+.scrapy
+.DS_Store
+.svn
+.well-known/
+__pycache__/
+*.pyc
+*.pyo
+*.db
+*.sqlite
+*.sqlite3
+*.log
+.env
+.venv
+venv/
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn.lock
+package-lock.json
+.DS_Store
+Thumbs.db
+.sass-cache/
+connect.lock
+npm-shrinkwrap.json
+coverage/
+htmlcov/
+.pytest_cache/
+.tox/
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+*.mo
+*.pot
+*.log
+.gitattributes
+*.orig
+*.rej
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+\#.\#*
+.recommenders
+.pydevproject
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.rej
+.orig
+.DS_Store
+Thumbs.db
+ehthumbs.db
+*.tmp
+*.temp
+*.log
+*.bak
+*.backup
+*.dump
+*.dmp
+*.stackdump
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+\#.\#*
+.recommenders
+*.swp
+*.swo
+*~
+.rej
+.orig
+.DS_Store
+Thumbs.db
+ehthumbs.db
+*.tmp
+*.temp
+*.log
+*.bak
+*.backup
+*.dump
+*.dmp
+*.stackdump
+.DS_Store
+Thumbs.db
+ehthumbs.db
+*.tmp
+*.temp
+*.log
+*.bak
+*.backup
+*.dump
+*.dmp
+*.stackdump
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+\#.\#*
+.recommenders
+*.swp
+*.swo
+*~
+.rej
+.orig
+.DS_Store
+Thumbs.db
+ehthumbs.db
+*.tmp
+*.temp
+*.log
+*.bak
+*.backup
+*.dump
+*.dmp
+*.stackdump
