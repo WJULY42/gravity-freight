@@ -522,6 +522,8 @@ addEventListener('resize',resize);
 // 星系切换函数（带动画）
 function switchGalaxy(idx){
   if(idx<0||idx>=galaxies.length||idx===currentGalaxyIdx)return;
+  // 检查目标星系是否已解锁
+  if(!galaxyUnlocked[idx])return;
   galaxyTargetIdx=idx;
   galaxyTransition=1;
   galaxyAnimTime=0;
@@ -1251,7 +1253,7 @@ function showGalaxyMap(){
       const statusText = unlocked ? (i===0 ? '太阳系 · 母星' : '已发现 · 可跃迁') : '未探索区域';
       const emoji = ['🌞','⭐','✨','🌟','🔴'][i];
       
-      return `<button class="tbtn" onclick="switchGalaxy(${i});document.getElementById('mapOverlay').classList.remove('show')" 
+      return `<button class="tbtn" onclick="if(${unlocked}){switchGalaxy(${i});document.getElementById('mapOverlay').classList.remove('show')}else{SFX.tick()}" 
         style="background:${btnBg};border:1px solid ${btnBorder};
         padding:18px;text-align:left;border-radius:10px;cursor:${unlocked?'pointer':'not-allowed'};position:relative;
         transition:all 0.2s ease;opacity:${unlocked?1:0.5}"
@@ -1610,6 +1612,7 @@ function render(now){
   
   // 星系背景（支持过渡动画）
   let bgAlpha=1;
+  let renderGalaxyIdx = currentGalaxyIdx;
   if(galaxyTransition>0){
     galaxyAnimTime+=16;
     const t=clamp(galaxyAnimTime/GALAXY_ANIM_DUR,0,1);
@@ -1617,10 +1620,14 @@ function render(now){
     if(t>=1){
       currentGalaxyIdx=galaxyTargetIdx;
       galaxyTransition=0;
+      renderGalaxyIdx = currentGalaxyIdx;
       fitAll();
+    } else {
+      // 过渡期间使用目标星系索引进行渲染
+      renderGalaxyIdx = galaxyTargetIdx;
     }
   }
-  const curG=galaxies[currentGalaxyIdx];
+  const curG=galaxies[renderGalaxyIdx];
   const tgtG=galaxyTransition>0?galaxies[galaxyTargetIdx]:curG;
   // 绘制当前星系背景
   ctx.fillStyle=curG.bg;ctx.fillRect(0,0,W,H);
@@ -1655,18 +1662,46 @@ function render(now){
   }
 
   ctx.save();
-  // 只渲染当前星系的地球
-  if(currentGalaxyIdx===0){
-  const eg=ctx.createRadialGradient(CX-RE*.3,CY-RE*.3,RE*.1,CX,CY,RE);
-  eg.addColorStop(0,'#1d4a6b');eg.addColorStop(.7,'#123252');eg.addColorStop(1,'#0c2038');
-  ctx.fillStyle=eg;ctx.beginPath();ctx.arc(CX,CY,RE,0,TAU);ctx.fill();
-  ctx.clip();ctx.translate(CX,CY);ctx.rotate(gtime*.02);
-  ctx.fillStyle='rgba(46,107,82,.85)';
-  for(const[bx,by,rx,ry]of[[.3,-.2,.42,.26],[-.42,.25,.3,.2],[.1,.55,.26,.16],[-.15,-.6,.2,.13]]){
-    ctx.beginPath();ctx.ellipse(bx*RE,by*RE,rx*RE,ry*RE,bx*3,0,TAU);ctx.fill();}
-  ctx.restore();
-  ctx.strokeStyle='rgba(120,200,255,.28)';ctx.lineWidth=2;
-  ctx.beginPath();ctx.arc(CX,CY,RE+2.5,0,TAU);ctx.stroke();
+  // 渲染当前星系的中心天体（恒星或行星）
+  const curG = galaxies[renderGalaxyIdx];
+  
+  if(renderGalaxyIdx === 0){
+    // 太阳系：渲染地球
+    const eg=ctx.createRadialGradient(CX-RE*.3,CY-RE*.3,RE*.1,CX,CY,RE);
+    eg.addColorStop(0,'#1d4a6b');eg.addColorStop(.7,'#123252');eg.addColorStop(1,'#0c2038');
+    ctx.fillStyle=eg;ctx.beginPath();ctx.arc(CX,CY,RE,0,TAU);ctx.fill();
+    ctx.clip();ctx.translate(CX,CY);ctx.rotate(gtime*.02);
+    ctx.fillStyle='rgba(46,107,82,.85)';
+    for(const[bx,by,rx,ry]of[[.3,-.2,.42,.26],[-.42,.25,.3,.2],[.1,.55,.26,.16],[-.15,-.6,.2,.13]]){
+      ctx.beginPath();ctx.ellipse(bx*RE,by*RE,rx*RE,ry*RE,bx*3,0,TAU);ctx.fill();}
+    ctx.restore();
+    ctx.strokeStyle='rgba(120,200,255,.28)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(CX,CY,RE+2.5,0,TAU);ctx.stroke();
+  } else {
+    // 其他星系：渲染中心恒星
+    ctx.restore();
+    const starGrad = ctx.createRadialGradient(CX, CY, RE*0.1, CX, CY, RE*1.2);
+    starGrad.addColorStop(0, '#fff');
+    starGrad.addColorStop(0.3, curG.star);
+    starGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = starGrad;
+    ctx.beginPath();
+    ctx.arc(CX, CY, RE*1.2, 0, TAU);
+    ctx.fill();
+    
+    // 恒星辉光
+    ctx.shadowBlur = 40;
+    ctx.shadowColor = curG.star;
+    ctx.fillStyle = curG.star;
+    ctx.globalAlpha = 0.4;
+    ctx.beginPath();
+    ctx.arc(CX, CY, RE*0.8, 0, TAU);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    
+    // 恒星名称标签
+    label(curG.name + '·' + (curG.id==='proxima'?'比邻星':curG.id==='sirius'?'天狼星':curG.id==='tauCeti'?'鲸鱼座τ':curG.id==='trappist1'?'TRAPPIST-1':'恒星'), CX, CY-RE*1.5, curG.star, 12);
   }
 
   if(stormLeft>0){
@@ -1706,6 +1741,8 @@ function render(now){
 
   const wInfo=windowInfo();
   for(const r of routes){
+    // 只渲染当前星系的航线
+    if(r.a.galaxy!==galaxies[renderGalaxyIdx].id)continue;
     const ground=isSurface(r.a)&&isSurface(r.b);
     const marsR=isMarsRoute(r);
     ctx.save();ctx.setLineDash([5,7]);ctx.lineDashOffset=-gtime*16;
@@ -1729,7 +1766,7 @@ function render(now){
 
   for(const n of nodes){
     // 只渲染当前星系的节点
-    if(n.galaxy!==galaxies[currentGalaxyIdx].id)continue;
+    if(n.galaxy!==galaxies[renderGalaxyIdx].id)continue;
     if(n.locked){drawLocked(n);continue;}
     if(n.type==='star')drawStar(n);
     else if(n.type==='station')drawStation(n);
@@ -1759,7 +1796,7 @@ function render(now){
   }
 
   if(mode==='route'){
-    for(const n of nodes){if(n.locked)continue;const p=nodePos(n);
+    for(const n of nodes){if(n.locked||n.galaxy!==galaxies[renderGalaxyIdx].id)continue;const p=nodePos(n);
       const hot=mouse.over===n||routeSel===n;
       ctx.strokeStyle=routeSel===n?'rgba(245,168,60,.9)':'rgba(83,215,224,'+(hot?.8:.3)+')';
       ctx.lineWidth=hot?1.6:1;
@@ -1775,6 +1812,8 @@ function render(now){
   }
 
   for(const r of routes)for(const s of r.ships){
+    // 只渲染当前星系的飞船
+    if(r.a.galaxy!==galaxies[renderGalaxyIdx].id)continue;
     const p=pointAt(r.path,s.d);
     let ang=tangentAt(r.path,s.d);
     if(s.phase==='back')ang+=Math.PI;
@@ -2095,7 +2134,10 @@ function setSpeed(v){speed=v;
   document.getElementById('s1').classList.toggle('on',v===1);
   document.getElementById('s3').classList.toggle('on',v===3);
   document.getElementById('s10').classList.toggle('on',v===10);SFX.tick();}
-function hitNode(x,y){for(const n of nodes){if(n.locked)continue;const p=nodePos(n);
+function hitNode(x,y){for(const n of nodes){if(n.locked)continue;
+    // 只检测当前星系的节点
+    if(n.galaxy!==galaxies[renderGalaxyIdx||currentGalaxyIdx].id)continue;
+    const p=nodePos(n);
   if(Math.hypot(p.x-x,p.y-y)<24/cam.z+8)return n;}return null;}
 function updMouse(e){mouse.x=e.clientX;mouse.y=e.clientY;
   const w=toWorld(mouse.x,mouse.y);mouse.wx=w.x;mouse.wy=w.y;
