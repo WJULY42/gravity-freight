@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>引力物流 · Gravity Freight — 声望版</title>
+<title>引力物流 · Gravity Freight — 多星系版</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=ZCOOL+QingKe+HuangYou&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -277,6 +277,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
     <button class="tbtn" id="creBtn" title="创造者模式">🛠</button>
     <button class="tbtn" id="techBtn" title="船级研发">🔬</button>
     <button class="tbtn" id="repBtn" title="财务年报">📊</button>
+    <button class="tbtn" id="mapBtn" title="星系地图">🌌</button>
   </div>
 </header>
 
@@ -366,6 +367,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
   <p id="techSub">SHIP R&D</p>
   <div id="techCols"></div>
   <div class="ovbtns"><button id="techClose">关闭</button></div>
+</div></div>
+
+<div id="mapOverlay"><div class="ov panel">
+  <h2>星系导航</h2>
+  <p>GALAXY MAP · 选择跃迁目标</p>
+  <div id="mapContent"></div>
+  <div class="ovbtns"><button id="mapClose">关闭</button></div>
 </div></div>
 
 <div id="creOverlay"><div class="ov panel">
@@ -471,13 +479,29 @@ function fmtT(s){s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).pad
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
 let W=0,H=0,dpr=1,CX=0,CY=0,RE=0,R1=0,R2=0;
 const cam={ox:0,oy:0,z:1};
+// 星系配置：中心偏移、背景色、恒星色
+const galaxies=[
+  {id:'sol',name:'太阳系',cx:0,cy:0,bg:'#070d1a',star:'#ffd760'},
+  {id:'proxima',name:'半人马座α',cx:2800,cy:-400,bg:'#0a0f1e',star:'#ff9050'},
+  {id:'sirius',name:'天狼星系',cx:-2600,cy:600,bg:'#050a15',star:'#a0d8ff'},
+  {id:'tauCeti',name:'鲸鱼座τ',cx:800,cy:2400,bg:'#081018',star:'#ffe0a0'},
+  {id:'trappist1',name:'TRAPPIST-1',cx:-1200,cy:-2200,bg:'#0f0810',star:'#ff7050'}
+];
+let currentGalaxyIdx=0;
+let galaxyTransition=0; // 0=无过渡，>0=过渡中
+let galaxyTargetIdx=0;
+let galaxyAnimTime=0;
+const GALAXY_ANIM_DUR=1200; // 动画时长ms
 const keys=new Set();
 const PAD_A=-2.0, LZ_A=-1.32;
 function polar(r,a){return{x:CX+Math.cos(a)*r,y:CY+Math.sin(a)*r};}
 function toWorld(mx,my){return{x:(mx-W/2-cam.ox)/cam.z+W/2,y:(my-H/2-cam.oy)/cam.z+H/2};}
 function fitAll(){
+  const g=galaxies[currentGalaxyIdx];
   let maxR=RE*4.1;
-  for(const n of nodes)if(!n.locked)maxR=Math.max(maxR,n.r());
+  for(const n of nodes){
+    if(!n.locked && n.galaxy===g.id) maxR=Math.max(maxR,n.r());
+  }
   cam.ox=0;cam.oy=0;
   cam.z=clamp(Math.min((W/2-60)/(maxR*1.08),(H/2-60)/(maxR*1.08)),0.28,1);
 }
@@ -492,63 +516,132 @@ function resize(){
 }
 addEventListener('resize',resize);
 
+// 星系切换函数（带动画）
+function switchGalaxy(idx){
+  if(idx<0||idx>=galaxies.length||idx===currentGalaxyIdx)return;
+  galaxyTargetIdx=idx;
+  galaxyTransition=1;
+  galaxyAnimTime=0;
+  // 重置相机位置以平滑过渡
+  cam.ox=0;cam.oy=0;
+  const tgtG=galaxies[idx];
+  const targetZoom=clamp(Math.min((W/2-60)/(RE*4.1*1.08),(H/2-60)/(RE*4.1*1.08)),0.28,1);
+}
+
 const stars=Array.from({length:190},()=>({x:Math.random(),y:Math.random(),r:rand(.4,1.4),ph:rand(TAU)}));
 
 const prog={moon:false,mars:false,venus:false,ceres:false,europa:false,
   io:false,titan:false,triton:false,kuiper:false,
-  fuelUp:false,colony:0,colonyDone:false};
+  fuelUp:false,colony:0,colonyDone:false,
+  // 新外星系列表解锁状态
+  proxima:false,alphaC:false,barnard:false,luyten:false,sirius:false,
+  epsilonE:false,tauC:false,gliese581:false,kepler186:false,trappist1:false};
 
 const nodes=[
-  {id:'dock',type:'surface',name:'地表仓库',tag:'GROUND',r:()=>RE,angle:PAD_A-0.44,
+  // === 太阳系 (以太阳为中心，非地球中心) ===
+  {id:'sun',type:'star',name:'太阳恒星港',tag:'SOL',galaxy:'sol',r:()=>RE*0.3,angle:0,
+    prod:{fuel:5.0,sup:2.0,mat:2.0},cons:{},cap:200,stock:{fuel:50,sup:30,mat:30},mult:1.0,flash:0,isStar:true},
+  {id:'mercury',type:'mercury',name:'水星熔炉站',tag:'MERCURY',galaxy:'sol',r:()=>RE*1.8,angle:1.1,locked:true,
+    cost:40,req:null,plan:'水星计划',desc:'熔炉站 · 太阳能燃料 · ×1.5',
+    prod:{fuel:1.8},cons:{sup:0.4},cap:40,stock:{fuel:0,sup:0,mat:0},mult:1.5,flash:0},
+  {id:'dock',type:'surface',name:'地球·地表仓库',tag:'GROUND',galaxy:'sol',r:()=>RE,angle:PAD_A-0.44,
     prod:{sup:1.6,mat:1.2},cons:{},cap:100,stock:{fuel:0,sup:20,mat:14},mult:1,flash:0},
-  {id:'pad',type:'pad',name:'发射场',tag:'PAD',r:()=>RE,angle:PAD_A,
+  {id:'pad',type:'pad',name:'地球·发射场',tag:'PAD',galaxy:'sol',r:()=>RE,angle:PAD_A,
     prod:{},cons:{},cap:0,stock:{fuel:0,sup:0,mat:0},mult:1,flash:0},
-  {id:'depot',type:'depot',name:'九章燃料站',tag:'DEPOT',r:()=>RE*2.24,angle:0.62,
+  {id:'depot',type:'depot',name:'地球·九章燃料站',tag:'DEPOT',galaxy:'sol',r:()=>RE*2.24,angle:0.62,
     prod:{fuel:1.4},cons:{},cap:80,stock:{fuel:0,sup:0,mat:0},mult:1,flash:0},
-  {id:'st1',type:'station',name:'曙光站',tag:'LEO-1',r:()=>R1,angle:-0.15,
+  {id:'st1',type:'station',name:'地球·曙光站',tag:'LEO-1',galaxy:'sol',r:()=>R1,angle:-0.15,
     prod:{},cons:{sup:0.55,fuel:0.35},cap:48,stock:{fuel:0,sup:0,mat:0},mult:1,flash:0},
-  {id:'st2',type:'station',name:'天穹站',tag:'LEO-2',r:()=>R2,angle:3.35,
+  {id:'st2',type:'station',name:'地球·天穹站',tag:'LEO-2',galaxy:'sol',r:()=>R2,angle:3.35,
     prod:{},cons:{fuel:0.45,mat:0.55},cap:48,stock:{fuel:0,sup:0,mat:0},mult:1,flash:0},
-  {id:'fTank',type:'factory',name:'结构一厂',tag:'TANK',r:()=>RE*1.12,angle:0.9,
+  {id:'fTank',type:'factory',name:'地球·结构一厂',tag:'TANK',galaxy:'sol',r:()=>RE*1.12,angle:0.9,
     prod:{},cons:{},cap:0,stock:{fuel:0,sup:0,mat:0},fstock:2,makes:'tank',rate:1/20,mult:1,flash:0},
-  {id:'fEng',type:'factory',name:'动力二厂',tag:'ENGINE',r:()=>RE*1.12,angle:2.9,
+  {id:'fEng',type:'factory',name:'地球·动力二厂',tag:'ENGINE',galaxy:'sol',r:()=>RE*1.12,angle:2.9,
     prod:{},cons:{},cap:0,stock:{fuel:0,sup:0,mat:0},fstock:2,makes:'eng',rate:1/22,mult:1,flash:0},
-  {id:'fAvi',type:'factory',name:'航电三厂',tag:'AVIONICS',r:()=>RE*1.12,angle:1.95,
+  {id:'fAvi',type:'factory',name:'地球·航电三厂',tag:'AVIONICS',galaxy:'sol',r:()=>RE*1.12,angle:1.95,
     prod:{},cons:{},cap:0,stock:{fuel:0,sup:0,mat:0},fstock:1,makes:'avi',rate:1/27,mult:1,flash:0},
-  {id:'moon',type:'moon',name:'广寒基地',tag:'LUNAR',r:()=>RE*3.1,angle:-2.5,locked:true,
-    cost:60,req:null,plan:'月球计划',desc:'广寒基地 · 月壤建材 · ×1.8',
+  {id:'moon',type:'moon',name:'月球·广寒基地',tag:'LUNAR',galaxy:'sol',r:()=>RE*3.1,angle:-2.5,locked:true,
+    cost:60,req:'mercury',plan:'月球计划',desc:'广寒基地 · 月壤建材 · ×1.8',
     prod:{mat:1.6},cons:{fuel:0.50,sup:0.55},cap:56,stock:{fuel:0,sup:0,mat:0},mult:1.8,flash:0},
-  {id:'mars',type:'mars',name:'荧惑前哨',tag:'MARS',r:()=>RE*4.0,angle:-0.35,locked:true,
+  {id:'mars',type:'mars',name:'火星·荧惑前哨',tag:'MARS',galaxy:'sol',r:()=>RE*4.0,angle:-0.35,locked:true,
     cost:120,req:'moon',plan:'火星计划',desc:'荧惑前哨 · 窗口管制 · ×2.5 · 殖民500t',
     prod:{},cons:{sup:0.8,mat:0.9,fuel:0.6},cap:80,stock:{fuel:0,sup:0,mat:0},mult:2.5,flash:0},
-  {id:'venus',type:'venus',name:'浮云城',tag:'VENUS',r:()=>RE*3.55,angle:-1.2,locked:true,
+  {id:'venus',type:'venus',name:'金星·浮云城',tag:'VENUS',galaxy:'sol',r:()=>RE*3.55,angle:-1.2,locked:true,
     cost:200,req:'mars',plan:'金星计划',desc:'浮云城 · 大气城 · ×2.2 · 里程碑200t',
     prod:{},cons:{sup:0.7,fuel:0.5},cap:60,stock:{fuel:0,sup:0,mat:0},mult:2.2,
     mileGoal:200,mile:0,mileDone:false,mileReward:80,flash:0},
-  {id:'ceres',type:'ceres',name:'谷神矿站',tag:'CERES',r:()=>RE*4.8,angle:0.9,locked:true,
+  {id:'ceres',type:'ceres',name:'小行星带·谷神矿站',tag:'CERES',galaxy:'sol',r:()=>RE*4.8,angle:0.9,locked:true,
     cost:320,req:'venus',plan:'小行星带',desc:'谷神矿站 · 金属建材 · ×3.0 · 里程碑250t',
     prod:{mat:2.0},cons:{fuel:0.65},cap:64,stock:{fuel:0,sup:0,mat:0},mult:3.0,
     mileGoal:250,mile:0,mileDone:false,mileReward:120,flash:0},
-  {id:'europa',type:'europa',name:'冰海站',tag:'EUROPA',r:()=>RE*5.6,angle:2.6,locked:true,
+  {id:'europa',type:'europa',name:'木星·冰海站',tag:'EUROPA',galaxy:'sol',r:()=>RE*5.6,angle:2.6,locked:true,
     cost:480,req:'ceres',plan:'木星系',desc:'冰海站 · 冰电解燃料 · ×3.5 · 里程碑300t',
     prod:{fuel:2.2},cons:{sup:0.65},cap:64,stock:{fuel:0,sup:0,mat:0},mult:3.5,
     mileGoal:300,mile:0,mileDone:false,mileReward:150,flash:0},
-  {id:'io',type:'io',name:'伊奥熔硫站',tag:'IO',r:()=>RE*6.0,angle:-1.9,locked:true,
+  {id:'io',type:'io',name:'木星·伊奥熔硫站',tag:'IO',galaxy:'sol',r:()=>RE*6.0,angle:-1.9,locked:true,
     cost:650,req:'europa',plan:'木卫一计划',desc:'熔硫站 · 工业建材高产 · ×4.0 · 里程碑350t',
     prod:{mat:2.4},cons:{sup:0.7},cap:70,stock:{fuel:0,sup:0,mat:0},mult:4.0,
     mileGoal:350,mile:0,mileDone:false,mileReward:200,flash:0},
-  {id:'titan',type:'titan',name:'泰坦烃海站',tag:'TITAN',r:()=>RE*6.8,angle:0.35,locked:true,
+  {id:'titan',type:'titan',name:'土星·泰坦烃海站',tag:'TITAN',galaxy:'sol',r:()=>RE*6.8,angle:0.35,locked:true,
     cost:900,req:'io',plan:'土星计划',desc:'烃海站 · 烃燃料高产 · ×4.5 · 里程碑400t',
     prod:{fuel:3.0},cons:{sup:0.8},cap:70,stock:{fuel:0,sup:0,mat:0},mult:4.5,
     mileGoal:400,mile:0,mileDone:false,mileReward:260,flash:0},
-  {id:'triton',type:'triton',name:'特里同冰哨',tag:'TRITON',r:()=>RE*7.6,angle:2.2,locked:true,
+  {id:'triton',type:'triton',name:'海王星·特里同冰哨',tag:'TRITON',galaxy:'sol',r:()=>RE*7.6,angle:2.2,locked:true,
     cost:1300,req:'titan',plan:'海王星计划',desc:'冰哨 · 冰燃料 · ×5.0 · 里程碑450t',
     prod:{fuel:2.4},cons:{mat:0.6},cap:64,stock:{fuel:0,sup:0,mat:0},mult:5.0,
     mileGoal:450,mile:0,mileDone:false,mileReward:320,flash:0},
-  {id:'kuiper',type:'kuiper',name:'柯伊伯前哨',tag:'KUIPER',r:()=>RE*8.4,angle:-0.75,locked:true,
+  {id:'kuiper',type:'kuiper',name:'柯伊伯带·边缘前哨',tag:'KUIPER',galaxy:'sol',r:()=>RE*8.4,angle:-0.75,locked:true,
     cost:1800,req:'triton',plan:'柯伊伯远征',desc:'边缘前哨 · 全货种需求 · ×6.0 · 里程碑500t',
     prod:{},cons:{sup:0.8,mat:0.8,fuel:0.65},cap:90,stock:{fuel:0,sup:0,mat:0},mult:6.0,
     mileGoal:500,mile:0,mileDone:false,mileReward:400,flash:0},
+
+  // === 半人马座α星系 (比邻星系统) ===
+  {id:'proxima',type:'star',name:'比邻星港',tag:'PROXIMA',galaxy:'proxima',r:()=>RE*10.5,angle:0.8,locked:true,
+    cost:2500,req:'kuiper',plan:'星际远征',desc:'最近恒星标 · 星际中转 · ×7.0',
+    prod:{fuel:3.5},cons:{sup:0.9,mat:0.9},cap:120,stock:{fuel:0,sup:0,mat:0},mult:7.0,
+    isStar:true,mileGoal:600,mile:0,mileDone:false,mileReward:500,flash:0},
+  {id:'proximaB',type:'planet',name:'比邻星b·炽热站',tag:'PROX-B',galaxy:'proxima',r:()=>RE*11.2,angle:1.5,locked:true,
+    cost:3200,req:'proxima',plan:'比邻星开发',desc:'宜居候选 · 高温建材 · ×7.5',
+    prod:{mat:3.2},cons:{fuel:1.0,sup:0.8},cap:100,stock:{fuel:0,sup:0,mat:0},mult:7.5,
+    mileGoal:700,mile:0,mileDone:false,mileReward:600,flash:0},
+
+  // === 天狼星系 ===
+  {id:'sirius',type:'star',name:'天狼星枢纽',tag:'SIRIUS',galaxy:'sirius',r:()=>RE*12.0,angle:-1.4,locked:true,
+    cost:3800,req:'proximaB',plan:'天狼星航线',desc:'亮星枢纽 · 高能燃料 · ×8.0',
+    prod:{fuel:4.0},cons:{sup:1.0,mat:0.8},cap:140,stock:{fuel:0,sup:0,mat:0},mult:8.0,
+    isStar:true,mileGoal:800,mile:0,mileDone:false,mileReward:700,flash:0},
+  {id:'siriusB',type:'planet',name:'天狼伴星·白矮站',tag:'SIR-B',galaxy:'sirius',r:()=>RE*12.8,angle:2.1,locked:true,
+    cost:4500,req:'sirius',plan:'白矮开采',desc:'致密物质 · 稀有建材 · ×9.0',
+    prod:{mat:4.0},cons:{fuel:1.2,sup:1.0},cap:110,stock:{fuel:0,sup:0,mat:0},mult:9.0,
+    mileGoal:900,mile:0,mileDone:false,mileReward:850,flash:0},
+
+  // === 鲸鱼座τ星系 ===
+  {id:'tauCeti',type:'star',name:'鲸鱼τ港',tag:'TAU-CETI',galaxy:'tauCeti',r:()=>RE*13.6,angle:-2.0,locked:true,
+    cost:5200,req:'siriusB',plan:'鲸鱼座远征',desc:'类日恒星 · 平衡产出 · ×9.5',
+    prod:{fuel:2.8,sup:2.8,mat:2.8},cons:{},cap:160,stock:{fuel:0,sup:0,mat:0},mult:9.5,
+    isStar:true,mileGoal:1000,mile:0,mileDone:false,mileReward:1000,flash:0},
+  {id:'tauCetiE',type:'planet',name:'鲸鱼τe·富饶站',tag:'TAU-E',galaxy:'tauCeti',r:()=>RE*14.4,angle:0.6,locked:true,
+    cost:6000,req:'tauCeti',plan:'Tau-e开发',desc:'超级地球 · 全资源高产 · ×10.5',
+    prod:{fuel:3.0,sup:3.0,mat:3.0},cons:{fuel:0.8,sup:0.8,mat:0.8},cap:130,stock:{fuel:0,sup:0,mat:0},mult:10.5,
+    mileGoal:1200,mile:0,mileDone:false,mileReward:1200,flash:0},
+
+  // === TRAPPIST-1星系 (7颗行星) ===
+  {id:'trappist1',type:'star',name:'TRAPPIST-1母星',tag:'TRAPPIST',galaxy:'trappist1',r:()=>RE*15.2,angle:1.8,locked:true,
+    cost:7500,req:'tauCetiE',plan:'TRAPPIST计划',desc:'超冷矮星 · 七星连珠 · ×11.0',
+    prod:{fuel:3.5,sup:3.5,mat:3.5},cons:{},cap:180,stock:{fuel:0,sup:0,mat:0},mult:11.0,
+    isStar:true,mileGoal:1400,mile:0,mileDone:false,mileReward:1500,flash:0},
+  {id:'trappistB',type:'planet',name:'TRAPPIST-b·熔岩站',tag:'TR-B',galaxy:'trappist1',r:()=>RE*15.9,angle:-0.5,locked:true,
+    cost:8200,req:'trappist1',plan:'内环开发',desc:'熔岩世界 · 热熔材 · ×11.5',
+    prod:{mat:4.5},cons:{fuel:1.3,sup:1.0},cap:120,stock:{fuel:0,sup:0,mat:0},mult:11.5,
+    mileGoal:1500,mile:0,mileDone:false,mileReward:1600,flash:0},
+  {id:'trappistE',type:'planet',name:'TRAPPIST-e·宜居站',tag:'TR-E',galaxy:'trappist1',r:()=>RE*16.6,angle:1.2,locked:true,
+    cost:9000,req:'trappistB',plan:'宜居带',desc:'最佳宜居 · 生态补给 · ×12.5',
+    prod:{sup:5.0},cons:{fuel:1.0,mat:0.9},cap:140,stock:{fuel:0,sup:0,mat:0},mult:12.5,
+    mileGoal:1700,mile:0,mileDone:false,mileReward:1800,flash:0},
+  {id:'trappistG',type:'planet',name:'TRAPPIST-g·冰巨站',tag:'TR-G',galaxy:'trappist1',r:()=>RE*17.3,angle:2.8,locked:true,
+    cost:10000,req:'trappistE',plan:'外环冻结',desc:'冰冻巨星 · 冰燃料富矿 · ×13.5',
+    prod:{fuel:5.5},cons:{sup:1.1,mat:1.0},cap:150,stock:{fuel:0,sup:0,mat:0},mult:13.5,
+    mileGoal:1900,mile:0,mileDone:false,mileReward:2000,flash:0},
 ];
 const node=id=>nodes.find(n=>n.id===id);
 const nodePos=n=>polar(n.r(),n.angle);
@@ -1140,6 +1233,26 @@ function openReport(){
   document.getElementById('repOverlay').classList.add('show');SFX.tick();
 }
 
+// 星系地图界面
+function showGalaxyMap(){
+  const mapHtml=`<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:520px;margin:0 auto">
+    ${galaxies.map((g,i)=>{
+      const unlocked=i===0||nodes.some(n=>n.galaxy===g.id&&!n.locked);
+      const isCur=currentGalaxyIdx===i;
+      return `<button class="tbtn" onclick="switchGalaxy(${i});document.getElementById('mapOverlay').classList.remove('show')" 
+        style="background:${isCur?'rgba(83,215,224,.3)':'rgba(35,53,82,.5)'};border:1px solid ${isCur?'var(--cyan)':'var(--line)'};
+        padding:16px;text-align:left;border-radius:8px;cursor:pointer"
+        ${!unlocked&&i>0?'disabled':''}>
+        <div style="font-size:28px">${['🌞','⭐','✨','🌟','🔴'][i]}</div>
+        <div style="font-family:var(--disp);font-size:16px;color:${unlocked?'var(--ink)':'var(--dim)'}">${g.name}</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px">${unlocked?(i===0?'太阳系 · 已解锁':g.name+' · 可跃迁'):'未探索区域'}</div>
+      </button>`;
+    }).join('')}
+  </div>`;
+  document.getElementById('mapContent').innerHTML=mapHtml;
+  document.getElementById('mapOverlay').classList.add('show');SFX.tick();
+}
+
 /* ── 绘制 ── */
 function rr(x,y,w,h,r){ctx.beginPath();
   if(ctx.roundRect){ctx.roundRect(x,y,w,h,r);return;}
@@ -1386,6 +1499,47 @@ function drawKuiper(n){
   ctx.fillStyle=Math.sin(gtime*4)>0?'#59d98c':'#2a5c42';ctx.fillRect(-1,-13,2,3);
   ctx.restore();mileRing(n,p,14);bodyLabel(n,p,20);
 }
+function drawStar(n){
+  const p=nodePos(n);
+  ctx.save();ctx.translate(p.x,p.y);
+  const size=n.id==='sun'?18:(n.id==='trappist1'?10:12);
+  const g=ctx.createRadialGradient(0,0,1,0,0,size);
+  if(n.id==='sun'){g.addColorStop(0,'#fff7e0');g.addColorStop(0.3,'#ffd760');g.addColorStop(1,'#ff8c20');}
+  else if(n.id==='trappist1'){g.addColorStop(0,'#ffe8e0');g.addColorStop(0.4,'#ff6b50');g.addColorStop(1,'#8b2a10');}
+  else if(n.id==='sirius'){g.addColorStop(0,'#ffffff');g.addColorStop(0.4,'#a0d8ff');g.addColorStop(1,'#2060a0');}
+  else{g.addColorStop(0,'#fff0d0');g.addColorStop(0.4,'#ffb060');g.addColorStop(1,'#c05020');}
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,size,0,TAU);ctx.fill();
+  ctx.fillStyle=`rgba(255,200,100,${0.3+0.5*Math.abs(Math.sin(gtime*2+n.angle))})`;
+  ctx.beginPath();ctx.arc(0,0,size+4+Math.sin(gtime*3)*2,0,TAU);ctx.fill();
+  ctx.restore();bodyLabel(n,p,size+8);
+}
+function drawMercury(n){
+  const p=nodePos(n);
+  ctx.save();ctx.translate(p.x,p.y);
+  const g=ctx.createRadialGradient(-3,-3,1,0,0,8);
+  g.addColorStop(0,'#d0c8c0');g.addColorStop(1,'#706860');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,8,0,TAU);ctx.fill();
+  ctx.strokeStyle='rgba(180,140,100,.4)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(-5,-5);ctx.lineTo(5,5);ctx.moveTo(5,-5);ctx.lineTo(-5,5);ctx.stroke();
+  ctx.fillStyle=Math.sin(gtime*4)>0?'#59d98c':'#2a5c42';ctx.fillRect(-1,-12,2,3);
+  ctx.restore();bodyLabel(n,p,18);
+}
+function drawPlanet(n){
+  const p=nodePos(n);
+  ctx.save();ctx.translate(p.x,p.y);
+  let col1='#a0c0e0',col2='#406080';
+  if(n.id.includes('proxima')){col1='#e08060';col2='#803020';}
+  else if(n.id.includes('siriusB')){col1='#e8f0f8';col2='#607080';}
+  else if(n.id.includes('tauCetiE')){col1='#80c060';col2='#306020';}
+  else if(n.id.includes('trappistB')){col1='#f0a060';col2='#904020';}
+  else if(n.id.includes('trappistE')){col1='#60c080';col2='#206040';}
+  else if(n.id.includes('trappistG')){col1='#a0d0e0';col2='#306080';}
+  const g=ctx.createRadialGradient(-3,-3,1,0,0,11);
+  g.addColorStop(0,col1);g.addColorStop(1,col2);
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,11,0,TAU);ctx.fill();
+  ctx.fillStyle=Math.sin(gtime*4)>0?'#59d98c':'#2a5c42';ctx.fillRect(-1,-15,2,3);
+  ctx.restore();mileRing(n,p,16);bodyLabel(n,p,22);
+}
 function drawLocked(n){
   const p=nodePos(n);
   ctx.setLineDash([3,4]);ctx.strokeStyle='rgba(125,143,169,.4)';ctx.lineWidth=1;
@@ -1437,12 +1591,47 @@ function drawPad(){
 function render(now){
   ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
+  
+  // 星系背景（支持过渡动画）
+  let bgAlpha=1;
+  if(galaxyTransition>0){
+    galaxyAnimTime+=16;
+    const t=clamp(galaxyAnimTime/GALAXY_ANIM_DUR,0,1);
+    bgAlpha=1-t;
+    if(t>=1){
+      currentGalaxyIdx=galaxyTargetIdx;
+      galaxyTransition=0;
+      fitAll();
+    }
+  }
+  const curG=galaxies[currentGalaxyIdx];
+  const tgtG=galaxyTransition>0?galaxies[galaxyTargetIdx]:curG;
+  // 绘制当前星系背景
+  ctx.fillStyle=curG.bg;ctx.fillRect(0,0,W,H);
+  // 如果有过渡，叠加目标星系背景
+  if(galaxyTransition>0){
+    const t=clamp(galaxyAnimTime/GALAXY_ANIM_DUR,0,1);
+    ctx.globalAlpha=t;
+    ctx.fillStyle=tgtG.bg;ctx.fillRect(0,0,W,H);
+    ctx.globalAlpha=1;
+  }
+  
   for(const s of stars){
     ctx.globalAlpha=.25+.55*Math.abs(Math.sin(now*.001+s.ph));
     ctx.fillStyle='#cfe3f5';ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,TAU);ctx.fill();}
   ctx.globalAlpha=1;
   ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
-  ctx.translate(W/2+cam.ox,H/2+cam.oy);ctx.scale(cam.z,cam.z);ctx.translate(-W/2,-H/2);
+  
+  // 星系间过渡动画：平移+缩放
+  if(galaxyTransition>0){
+    const t=clamp(galaxyAnimTime/GALAXY_ANIM_DUR,0,1);
+    const ease=t*(2-t);
+    const ox=(tgtG.cx-curG.cx)*ease;
+    const oy=(tgtG.cy-curG.cy)*ease;
+    const camOx=cam.ox*(1-ease);const camOy=cam.oy*(1-ease);ctx.translate(W/2+camOx-ox,H/2+camOy-oy);ctx.scale(cam.z,cam.z);ctx.translate(-W/2,-H/2);
+  }else{
+    ctx.translate(W/2+cam.ox,H/2+cam.oy);ctx.scale(cam.z,cam.z);ctx.translate(-W/2,-H/2);
+  }
   if(slowmo>0){
     const z=1+0.65*Math.sin(Math.PI*clamp(1-slowmo/cineT,0,1));
     const lz=polar(RE+8,LZ_A);
@@ -1450,6 +1639,8 @@ function render(now){
   }
 
   ctx.save();
+  // 只渲染当前星系的地球
+  if(currentGalaxyIdx===0){
   const eg=ctx.createRadialGradient(CX-RE*.3,CY-RE*.3,RE*.1,CX,CY,RE);
   eg.addColorStop(0,'#1d4a6b');eg.addColorStop(.7,'#123252');eg.addColorStop(1,'#0c2038');
   ctx.fillStyle=eg;ctx.beginPath();ctx.arc(CX,CY,RE,0,TAU);ctx.fill();
@@ -1460,6 +1651,7 @@ function render(now){
   ctx.restore();
   ctx.strokeStyle='rgba(120,200,255,.28)';ctx.lineWidth=2;
   ctx.beginPath();ctx.arc(CX,CY,RE+2.5,0,TAU);ctx.stroke();
+  }
 
   if(stormLeft>0){
     ctx.fillStyle=`rgba(245,168,60,${0.035+0.025*Math.sin(gtime*9)})`;
@@ -1520,20 +1712,25 @@ function render(now){
    ctx.restore();label('回收区',polar(RE+26,LZ_A+0.22).x,polar(RE+26,LZ_A+0.22).y,'rgba(89,217,140,.6)',10);}
 
   for(const n of nodes){
+    // 只渲染当前星系的节点
+    if(n.galaxy!==galaxies[currentGalaxyIdx].id)continue;
     if(n.locked){drawLocked(n);continue;}
-    if(n.type==='station')drawStation(n);
+    if(n.type==='star')drawStar(n);
+    else if(n.type==='station')drawStation(n);
     else if(n.type==='depot')drawDepot(n);
     else if(n.type==='factory')drawFactory(n);
     else if(n.type==='dock'||n.type==='surface')drawDock(n);
     else if(n.type==='moon')drawMoon(n);
     else if(n.type==='mars')drawMars(n);
     else if(n.type==='venus')drawVenus(n);
+    else if(n.type==='mercury')drawMercury(n);
     else if(n.type==='ceres')drawCeres(n);
     else if(n.type==='europa')drawEuropa(n);
     else if(n.type==='io')drawIo(n);
     else if(n.type==='titan')drawTitan(n);
     else if(n.type==='triton')drawTriton(n);
     else if(n.type==='kuiper')drawKuiper(n);
+    else if(n.type==='planet')drawPlanet(n);
     if(!['factory','pad'].includes(n.type))drawStockBars(n,nodePos(n));
     if(Object.keys(n.cons).length&&stockTotal(n)<6){
       const p=nodePos(n),a=.5+.5*Math.sin(gtime*5);
@@ -1977,6 +2174,10 @@ document.getElementById('creToggle').addEventListener('click',()=>{
   else{creator=false;money=Math.max(1,preCreatorMoney);
     toast('创造者模式关闭 —— 资金已还原');log('创造者模式关闭');}
   saveGame(true);});
+document.getElementById('mapClose').addEventListener('click',()=>{
+  document.getElementById('mapOverlay').classList.remove('show');SFX.tick();});
+document.getElementById('mapBtn').addEventListener('click',()=>{
+  showGalaxyMap();SFX.tick();});
 document.getElementById('cAllNode').addEventListener('click',()=>creAct(()=>{
   for(const id of UNLOCK_ORDER){prog[id]=true;node(id).locked=false;}
   log('全部星域已解锁','good');toast('九星全部接入轨道网');}));
