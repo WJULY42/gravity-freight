@@ -1,0 +1,2057 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>引力物流 · Gravity Freight — 声望版</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=ZCOOL+QingKe+HuangYou&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070d1a; --panel:rgba(13,22,40,.92); --line:#233552; --ink:#dbe6f4; --dim:#7d8fa9;
+  --cyan:#53d7e0; --amber:#f5a83c; --red:#ff5d5d; --green:#59d98c; --gold:#ffd166;
+  --tank:#d9a441; --eng:#ff7a5c; --avi:#8ab8ff;
+  --disp:'ZCOOL QingKe HuangYou','Orbitron','Noto Sans SC',sans-serif;
+  --num:'Orbitron','Noto Sans SC',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:'Noto Sans SC',system-ui,sans-serif;user-select:none}
+#cv{position:fixed;inset:0;display:block}
+#vig{position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 52%,transparent 55%,rgba(2,5,12,.55) 100%)}
+.num{font-family:var(--num)}
+
+/* ── 滚动条治理:侧栏隐藏(仍可滚动),弹层细主题条 ── */
+#right,#cards,#routeList,#wall{scrollbar-width:none;-ms-overflow-style:none}
+#right::-webkit-scrollbar,#cards::-webkit-scrollbar,
+#routeList::-webkit-scrollbar,#wall::-webkit-scrollbar{display:none}
+#overlay,#repOverlay,#techOverlay,#creOverlay{padding:24px}
+.ov{scrollbar-width:thin;scrollbar-color:#3a5480 transparent}
+.ov::-webkit-scrollbar{width:5px}
+.ov::-webkit-scrollbar-track{background:transparent}
+.ov::-webkit-scrollbar-thumb{background:#3a5480;border-radius:3px}
+
+#top{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;gap:16px;
+  padding:12px 18px;pointer-events:none;z-index:16}
+#brand h1{font-family:var(--disp);font-size:30px;font-weight:400;line-height:1;
+  color:#fff;text-shadow:0 0 18px rgba(83,215,224,.35)}
+#brand h1 b{color:var(--amber);font-weight:400}
+#brand p{font-size:10px;letter-spacing:.28em;color:var(--dim);margin-top:4px;font-family:var(--num)}
+#topRight{margin-left:auto;display:flex;align-items:center;gap:10px;pointer-events:auto}
+#modes{display:flex;border:1px solid var(--line);background:var(--panel)}
+#moneyWrap{text-align:right}
+#moneyWrap small{display:block;font-size:9px;letter-spacing:.3em;color:var(--dim)}
+#moneyVal{font-family:var(--num);font-weight:700;font-size:26px;color:var(--gold);
+  text-shadow:0 0 14px rgba(255,209,102,.35);transition:transform .15s}
+#moneyVal.pop{transform:scale(1.12)}
+#clock{font-family:var(--num);font-size:13px;color:var(--cyan);min-width:74px;text-align:center;
+  border:1px solid var(--line);padding:6px 8px;background:var(--panel)}
+.tbtn{font-family:var(--num);font-size:12px;color:var(--dim);background:var(--panel);
+  border:1px solid var(--line);padding:7px 11px;cursor:pointer;transition:.15s}
+#modes .tbtn{border:none}
+.tbtn:hover{color:var(--ink);border-color:var(--cyan)}
+#modes .tbtn:hover{background:rgba(83,215,224,.08)}
+.tbtn.on{color:#08131f;background:var(--cyan);border-color:var(--cyan);font-weight:700}
+.tbtn.cre{color:var(--gold);border-color:rgba(255,209,102,.5)}
+
+#banner{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:17;
+  font-family:var(--num);font-size:12px;letter-spacing:.15em;color:#ffb4b4;
+  background:rgba(34,12,16,.92);border:1px solid rgba(255,93,93,.6);padding:7px 18px;
+  display:none;animation:bpulse 1.4s ease-in-out infinite;pointer-events:none}
+#banner.show{display:block}
+@keyframes bpulse{0%,100%{box-shadow:0 0 6px rgba(255,93,93,.3)}50%{box-shadow:0 0 20px rgba(255,93,93,.7)}}
+
+#cineT,#cineB{position:fixed;left:0;right:0;height:0;background:#000;z-index:14;transition:height .25s;pointer-events:none}
+#cineT{top:0}#cineB{bottom:0}
+#cineTag{position:fixed;top:74px;left:50%;transform:translateX(-50%);z-index:15;font-family:var(--num);
+  font-size:10px;letter-spacing:.5em;color:var(--amber);opacity:0;transition:.3s;pointer-events:none}
+#cineTag.show{opacity:1}
+
+#tip{position:fixed;z-index:22;pointer-events:none;max-width:230px;
+  background:rgba(10,17,32,.95);border:1px solid var(--line);padding:9px 11px;
+  font-size:11px;line-height:1.75;color:var(--dim);opacity:0;transition:opacity .15s;
+  box-shadow:0 6px 24px rgba(0,0,0,.5)}
+#tip.show{opacity:1}
+#tip b{color:var(--ink);font-size:12px}
+#tip i{font-style:normal;font-family:var(--num);font-size:9px;color:var(--cyan);margin-left:6px;letter-spacing:.15em}
+#tip .tp{color:var(--green)} #tip .tc{color:var(--red)} #tip .tg{color:var(--gold)} #tip .tm{color:var(--cyan)}
+
+.panel{background:var(--panel);border:1px solid var(--line);
+  padding:14px;box-shadow:0 8px 30px rgba(0,0,0,.45);position:relative}
+.panel::before,.panel::after{content:'';position:absolute;width:12px;height:12px;pointer-events:none}
+.panel::before{top:-1px;left:-1px;border-top:2px solid var(--amber);border-left:2px solid var(--amber)}
+.panel::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--amber);border-right:2px solid var(--amber)}
+.ph{font-family:var(--disp);font-size:15px;color:var(--amber);margin-bottom:10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ph span{font-family:var(--num);font-size:9px;letter-spacing:.18em;color:var(--dim);text-align:right}
+.row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:var(--dim)}
+.row b{color:var(--ink);font-weight:500}
+.row .ok{color:var(--green)} .row .bad{color:var(--red)}
+.sep{border-top:1px dashed var(--line);margin:8px 0}
+.mini{font-size:10px;color:var(--dim);letter-spacing:.05em}
+
+#left{position:fixed;left:16px;top:86px;bottom:16px;width:248px;z-index:9;
+  display:flex;flex-direction:column;gap:12px;pointer-events:none}
+#right{position:fixed;right:16px;top:86px;bottom:16px;width:272px;z-index:9;
+  display:flex;flex-direction:column;gap:12px;pointer-events:none;overflow-y:auto}
+#left .panel,#right .panel{pointer-events:auto}
+#pContracts{flex:1;min-height:0;display:flex;flex-direction:column}
+#cards{overflow-y:auto;flex:1;min-height:60px;padding-right:2px}
+#pRoutes{flex:1;min-height:0;display:flex;flex-direction:column}
+#routeList{overflow-y:auto;flex:1;min-height:36px;padding-right:2px}
+
+/* ── 声望条 ── */
+#repBox{margin:-4px 0 8px;padding:7px 9px;border:1px solid var(--line);background:rgba(9,15,28,.6)}
+#repBox .rl{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;margin-bottom:5px}
+#repBox .rl b{color:var(--gold);font-size:11px;letter-spacing:.05em}
+#repBox .rl span{font-family:var(--num);font-size:10px;color:var(--dim)}
+.rbar{height:4px;background:#16233c}
+.rbar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--gold));transition:width .3s}
+
+.rrow{border:1px solid var(--line);padding:8px;margin-bottom:8px;background:rgba(9,15,28,.6)}
+.rrow.blocked{border-color:rgba(255,93,93,.55)}
+.rrow .rt{font-size:12px;font-weight:700}
+.rrow .rt .gnd{font-size:9px;color:var(--tank);border:1px solid rgba(217,164,65,.5);padding:0 3px;margin-left:5px;vertical-align:1px}
+.rrow .rt .marsb{font-size:9px;color:var(--red);border:1px solid rgba(255,93,93,.5);padding:0 3px;margin-left:5px;vertical-align:1px}
+.rrow .rs{font-family:var(--num);font-size:10px;color:var(--dim);margin:4px 0 7px}
+.rrow .rs.haz{color:var(--red)}
+.rbtns{display:flex;gap:6px}
+.rbtn{flex:1;font-size:10px;font-family:'Noto Sans SC';padding:5px 0;background:#16233c;
+  border:1px solid var(--line);color:var(--ink);cursor:pointer;transition:.15s}
+.rbtn:hover{border-color:var(--cyan)}
+.rbtn:disabled{opacity:.35;cursor:not-allowed}
+.rbtn.del{color:var(--red);flex:0 0 52px}
+.rbtn.del:hover{border-color:var(--red)}
+#routeHint{font-size:10px;color:var(--dim);line-height:1.7;padding:8px 0 4px;border-top:1px dashed var(--line)}
+#legend{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:10px;color:var(--dim);padding-top:7px;border-top:1px dashed var(--line)}
+#legend i{display:inline-block;width:8px;height:8px;margin-right:4px;vertical-align:-1px}
+
+.card{border:1px solid var(--line);padding:9px 10px;margin-bottom:8px;cursor:pointer;
+  position:relative;transition:.15s;background:rgba(9,15,28,.6)}
+.card:hover{transform:translateX(3px);border-color:#3a5480}
+.card.sel{border-color:var(--amber);box-shadow:0 0 12px rgba(245,168,60,.25),inset 0 0 20px rgba(245,168,60,.05)}
+.card.lock{cursor:default;opacity:.85}
+.card .cn{display:flex;justify-content:space-between;font-weight:700;font-size:13px}
+.card .rw{color:var(--gold);font-family:var(--num);font-size:12px}
+.card .cm{font-size:11px;color:var(--dim);margin:3px 0 6px}
+.card.urgent{border-color:rgba(255,93,93,.45)}
+.card.urgent .cn span:first-child::before{content:'⚡';margin-right:3px}
+.cbar{height:3px;background:#16233c}
+.cbar i{display:block;height:100%;background:var(--cyan);transition:width .3s linear}
+.card.warn .cbar i{background:var(--amber)}
+.card.crit .cbar i{background:var(--red)}
+.ctm{font-family:var(--num);font-size:10px;color:var(--dim);margin-top:5px}
+.card.done::after,.card.failed::after{content:attr(data-stamp);position:absolute;top:6px;right:8px;
+  font-size:10px;font-weight:900;padding:2px 6px;transform:rotate(-6deg);border:1.5px solid}
+.card.done::after{color:var(--green);border-color:var(--green)}
+.card.failed::after{color:var(--red);border-color:var(--red)}
+.card.done,.card.failed{opacity:.55}
+#nextTease{font-size:10px;color:var(--dim);letter-spacing:.08em;text-align:center;padding-top:6px;border-top:1px dashed var(--line)}
+
+#wh{display:flex;gap:6px;margin-bottom:4px}
+.chip{flex:1;text-align:center;border:1px solid var(--line);background:rgba(9,15,28,.6);padding:5px 2px}
+.chip b{display:block;font-family:var(--num);font-size:15px}
+.chip span{font-size:9px;color:var(--dim);letter-spacing:.1em}
+.chip.tank b{color:var(--tank)} .chip.eng b{color:var(--eng)} .chip.avi b{color:var(--avi)}
+#asmBar{height:5px;background:#16233c;margin:6px 0 2px}
+#asmBar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--tank),var(--eng),var(--avi));transition:width .2s linear}
+.act{width:100%;margin-top:8px;padding:10px 0;border:none;cursor:pointer;
+  font-family:var(--disp);font-size:15px;letter-spacing:.2em;color:#08131f;background:var(--cyan);transition:.15s}
+.act:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(83,215,224,.35)}
+.act:disabled{background:#2c3c58;color:#66788f;cursor:not-allowed}
+#launchBtn{width:100%;margin-top:10px;padding:13px 0;border:none;cursor:pointer;
+  font-family:var(--disp);font-size:18px;letter-spacing:.3em;color:#08131f;background:var(--amber);transition:.15s}
+#launchBtn:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(245,168,60,.45)}
+#launchBtn:not(:disabled){animation:breathe 2.4s ease-in-out infinite}
+#launchBtn:disabled{background:#2c3c58;color:#66788f;cursor:not-allowed}
+@keyframes breathe{0%,100%{box-shadow:0 0 6px rgba(245,168,60,.2)}50%{box-shadow:0 0 20px rgba(245,168,60,.5)}}
+#btnNote{font-size:10px;color:var(--dim);text-align:center;margin-top:7px;letter-spacing:.1em}
+
+#wall{max-height:150px;overflow-y:auto;margin-bottom:8px}
+.bst{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(35,53,82,.5);font-size:12px;position:relative}
+.bst:last-child{border-bottom:none}
+.bst .nm{font-family:var(--num);font-weight:700;color:var(--ink);font-size:11px}
+.bst .fl{font-size:10px;color:var(--cyan);font-family:var(--num)}
+.bst .stt{margin-left:auto;font-size:11px}
+.st-ready{color:var(--green)} .st-fly{color:var(--amber)} .st-ref{color:var(--cyan)}
+.st-lost{color:var(--red);text-decoration:line-through} .st-asm{color:var(--tank)}
+.bst .refbar{position:absolute;left:0;bottom:0;width:100%;height:2px;background:#16233c}
+.bst .refbar i{display:block;height:100%;background:var(--cyan);width:0%}
+
+.xbtn{display:block;width:100%;text-align:left;margin-bottom:7px;padding:8px 10px;cursor:pointer;
+  background:rgba(9,15,28,.6);border:1px solid var(--line);color:var(--ink);transition:.15s;font-family:'Noto Sans SC'}
+.xbtn b{font-size:12px;display:flex;justify-content:space-between}
+.xbtn b em{font-style:normal;font-family:var(--num);color:var(--gold)}
+.xbtn small{display:block;font-size:10px;color:var(--dim);margin-top:3px}
+.xbtn:hover:not(:disabled){border-color:var(--cyan);transform:translateX(3px)}
+.xbtn:disabled{cursor:default}
+.xbtn.done{border-color:rgba(89,217,140,.5);opacity:.9}
+.xbtn.done b em{color:var(--green)}
+.xbtn.lockd{opacity:.55}
+.mrow{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--dim);margin-top:5px}
+.mrow span{flex:0 0 58px}
+.mrow b{font-family:var(--num);font-weight:500;color:var(--ink);flex:0 0 74px;text-align:right}
+.mbar{flex:1;height:5px;background:#16233c}
+.mbar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--amber),var(--green));transition:width .3s}
+#techCols{display:flex;gap:14px;text-align:left;margin-bottom:14px}
+#techCols .tcol{flex:1}
+#techCols .ph{font-size:13px}
+#creGrid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+#creGrid .xbtn{width:calc(50% - 4px);margin-bottom:0}
+
+#log{position:fixed;left:282px;bottom:16px;width:330px;z-index:9;pointer-events:none;
+  display:flex;flex-direction:column;justify-content:flex-end;gap:3px;font-size:11.5px}
+#log div{color:var(--dim);background:linear-gradient(90deg,rgba(10,17,32,.85),transparent);
+  padding:2px 8px;animation:login .3s ease}
+#log div b{color:var(--cyan);font-family:var(--num);font-weight:500;font-size:10px;margin-right:6px}
+#log div.good{color:var(--green)} #log div.bad{color:var(--red)}
+#log div:first-child{opacity:.35} #log div:nth-child(2){opacity:.6}
+@keyframes login{from{transform:translateX(-14px);opacity:0}to{transform:none;opacity:1}}
+#roadmap{position:fixed;right:16px;top:50%;transform:translateY(-50%);z-index:8;
+  writing-mode:vertical-rl;display:flex;gap:2px;align-items:center}
+#roadmap i{font-style:normal;font-family:var(--num);font-size:9px;letter-spacing:.2em;color:#3c5170;padding:7px 3px;border:1px solid transparent}
+#roadmap i.on{color:var(--amber);border-color:var(--amber);background:rgba(245,168,60,.08)}
+#roadmap i.done{color:var(--green)}
+#hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:8;
+  font-family:var(--num);font-size:10px;letter-spacing:.14em;color:#44587a}
+#toast{position:fixed;bottom:54px;left:50%;transform:translateX(-50%);z-index:25;font-size:11px;
+  letter-spacing:.15em;color:var(--cyan);background:rgba(13,22,40,.95);border:1px solid var(--line);
+  padding:6px 16px;opacity:0;transition:.35s;pointer-events:none}
+#toast.show{opacity:1}
+
+#count{position:fixed;inset:0;display:none;place-items:center;z-index:20;pointer-events:none;text-align:center}
+#count.show{display:grid}
+#countNum{font-family:var(--num);font-weight:900;font-size:130px;color:#fff;text-shadow:0 0 40px rgba(245,168,60,.8)}
+#countNum.pop{animation:cpop .9s ease}
+@keyframes cpop{0%{transform:scale(1.5);opacity:0}20%{opacity:1}100%{transform:scale(1)}}
+#count em{display:block;font-style:normal;font-family:var(--num);font-size:11px;letter-spacing:.5em;color:var(--amber);margin-top:8px}
+#overlay,#repOverlay,#techOverlay,#creOverlay{position:fixed;inset:0;display:none;place-items:center;z-index:30;background:rgba(4,8,16,.7);backdrop-filter:blur(3px)}
+#overlay.show,#repOverlay.show,#techOverlay.show,#creOverlay.show{display:grid}
+.ov{width:min(460px,100%);max-height:100%;overflow-y:auto;text-align:center;padding:28px}
+.ov h2{font-family:var(--disp);font-size:28px;color:var(--amber);font-weight:400}
+.ov p{color:var(--dim);font-size:12px;margin:8px 0 16px;letter-spacing:.1em}
+.ov table{width:100%;border-collapse:collapse;margin-bottom:20px}
+.ov td{padding:6px 4px;font-size:12.5px;border-bottom:1px solid rgba(35,53,82,.5);text-align:left;color:var(--dim)}
+.ov td:last-child{text-align:right;font-family:var(--num);color:var(--ink)}
+.ovbtns{display:flex;gap:10px;justify-content:center}
+.ovbtns button{font-family:var(--disp);font-size:15px;letter-spacing:.2em;padding:12px 26px;border:none;cursor:pointer;transition:.15s}
+#ovGo,#repClose,#techClose,#creClose{background:var(--cyan);color:#08131f}
+#ovGo:hover,#repClose:hover,#techClose:hover,#creClose:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(83,215,224,.4)}
+#again{background:#2c3c58;color:var(--ink)}
+#again:hover{transform:translateY(-2px)}
+
+@media(max-width:1150px){
+  #left{width:210px}#right{width:236px}
+  #roadmap{display:none}
+  #brand h1{font-size:22px}
+  #log{left:242px;width:260px}
+}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="vig"></div>
+<div id="cineT"></div><div id="cineB"></div>
+<div id="cineTag">RECOVERY CAM · 回收镜头</div>
+<div id="tip"></div>
+<div id="banner"></div>
+
+<header id="top">
+  <div id="brand">
+    <h1 class="disp">引力<b>物流</b></h1>
+    <p>GRAVITY FREIGHT · REPUTATION EDITION</p>
+  </div>
+  <div id="topRight">
+    <div id="modes">
+      <button class="tbtn on" id="mLaunch">🚀 发射</button>
+      <button class="tbtn" id="mRoute">🛤 航线</button>
+    </div>
+    <div id="moneyWrap"><small>公司资金 FUNDS</small><div id="moneyVal">$60.0M</div></div>
+    <div id="clock">T+00:00</div>
+    <button class="tbtn on" id="s1">1×</button>
+    <button class="tbtn" id="s3">3×</button>
+    <button class="tbtn" id="s10">10×</button>
+    <button class="tbtn" id="pause">⏸</button>
+    <button class="tbtn" id="mute">♪</button>
+    <button class="tbtn" id="creBtn" title="创造者模式">🛠</button>
+    <button class="tbtn" id="techBtn" title="船级研发">🔬</button>
+    <button class="tbtn" id="repBtn" title="财务年报">📊</button>
+  </div>
+</header>
+
+<div id="left">
+  <aside class="panel" id="pContracts">
+    <div class="ph">合同清单 <span id="conStat">CONTRACTS</span></div>
+    <div id="repBox">
+      <div class="rl"><b id="repLv">LV1 · 初创承运</b><span id="repNext">0/50</span></div>
+      <div class="rbar"><i id="repBarI"></i></div>
+    </div>
+    <div id="cards"></div>
+    <div id="nextTease">声望越高,订单越大 —— 三级后出现加急单</div>
+  </aside>
+
+  <aside class="panel" id="pRoutes">
+    <div class="ph">航线网络 <span id="netStat">0 条航线</span></div>
+    <div id="routeList"></div>
+    <div id="routeHint">「🛤 航线」模式点两个节点开通($3.0M),再派货船($8.0M)。金色=地面零件线,红色=窗口/封锁线。发射场只接工厂零件专线。</div>
+    <div id="legend"></div>
+  </aside>
+</div>
+
+<div id="right">
+  <aside class="panel" id="pLaunch">
+    <div class="ph">发射指挥 · 供应链 <span>COMMAND</span></div>
+    <div class="row"><span>任务</span><b id="selName">—</b></div>
+    <div class="row"><span>目的地 / 载荷</span><b id="selRoute">—</b></div>
+    <div class="sep"></div>
+    <div class="mini">发射场仓库 PARTS DEPOT</div>
+    <div id="wh">
+      <div class="chip tank"><b id="whTank">0</b><span>罐体</span></div>
+      <div class="chip eng"><b id="whEng">0</b><span>动力</span></div>
+      <div class="chip avi"><b id="whAvi">0</b><span>航电</span></div>
+    </div>
+    <div class="row"><span>总装塔</span><b id="asmState">空闲</b></div>
+    <div id="asmBar"><i></i></div>
+    <button class="act" id="orderBtn">下单 · 标准火箭 ×1</button>
+    <div class="sep"></div>
+    <div class="row"><span>待命火箭</span><b id="readyN" class="ok">0</b></div>
+    <div class="row"><span>发射成本(点火费)</span><b class="num" id="opsCost">$5.0M</b></div>
+    <div class="row"><span>着陆回收概率</span><b id="probLine" class="ok">68%</b></div>
+    <button id="launchBtn" disabled>点火发射</button>
+    <div id="btnNote">—</div>
+  </aside>
+
+  <aside class="panel" id="pFleet">
+    <div class="ph">助推器荣誉墙 <span>HALL OF FAME</span></div>
+    <div id="wall"></div>
+    <div class="row"><span>着陆成功率(经验值)</span><b id="skillLine" class="ok">68%</b></div>
+    <div class="row"><span>发射 / 回收 / 损毁</span><b id="statLine">0 / 0 / 0</b></div>
+  </aside>
+
+  <aside class="panel" id="pExpand">
+    <div class="ph">星际扩张 <span>EXPANSION</span></div>
+    <div id="xList"></div>
+    <button class="xbtn" id="xFuel"><b>船队加注改造 <em>$30.0M</em></b><small>全体货船航速 +35%</small></button>
+    <div class="mini" style="margin-top:6px">星域里程碑 MILESTONES</div>
+    <div id="mileBars"></div>
+  </aside>
+</div>
+
+<div id="log"></div>
+<div id="roadmap">
+  <i class="done">P0–P7 ✓</i><i class="done">P8 创造者 ✓</i><i class="on">P9 声望</i>
+</div>
+<div id="hint">SPACE 发射 · R 航线 · 滚轮缩放 · 方向键平移 · F 全览 · 🛠 创造者 · 0 = 10×</div>
+<div id="toast"></div>
+
+<div id="count"><div><div id="countNum">3</div><em>IGNITION SEQUENCE</em></div></div>
+
+<div id="overlay"><div class="ov panel">
+  <h2 id="ovTitle">任务完成</h2>
+  <p id="ovSub">—</p>
+  <table id="ovStats"></table>
+  <div class="ovbtns"><button id="ovGo">继续经营</button><button id="again">重新开始</button></div>
+</div></div>
+
+<div id="repOverlay"><div class="ov panel">
+  <h2>年度经营报告</h2>
+  <p>GRAVITY FREIGHT · ANNUAL REPORT</p>
+  <table id="repStats"></table>
+  <div class="ovbtns"><button id="repClose">关闭</button></div>
+</div></div>
+
+<div id="techOverlay"><div class="ov panel">
+  <h2>船级研发</h2>
+  <p id="techSub">SHIP R&D</p>
+  <div id="techCols"></div>
+  <div class="ovbtns"><button id="techClose">关闭</button></div>
+</div></div>
+
+<div id="creOverlay"><div class="ov panel">
+  <h2>创造者模式</h2>
+  <p>CREATOR · 测试沙盒:资金无限 + 快捷操作(正式游玩请勿开启)</p>
+  <button class="xbtn" id="creToggle"><b>创造者模式 <em id="creState">关闭</em></b><small>开启后资金显示 ∞,一切购买不扣款</small></button>
+  <div id="creGrid">
+    <button class="xbtn" id="cAllNode"><b>解锁全部星域</b><small>九星即刻接入轨道网</small></button>
+    <button class="xbtn" id="cAllTech"><b>完成全部研发</b><small>舱容/推进满级 + 加注</small></button>
+    <button class="xbtn" id="cParts"><b>补满零件仓库</b><small>罐体/动力/航电 各 4 件</small></button>
+    <button class="xbtn" id="cRocket"><b>立即总装一发</b><small>跳过生产线直接入列</small></button>
+    <button class="xbtn" id="cContract"><b>生成新合同</b><small>无视待办上限</small></button>
+    <button class="xbtn" id="cRep"><b>声望 +50</b><small>测试等级跃迁与授信奖金</small></button>
+    <button class="xbtn" id="cMeteor"><b>触发陨石雨</b><small>随机封锁一条航线 25s</small></button>
+    <button class="xbtn" id="cStorm"><b>触发太阳风暴</b><small>封锁全部外环航线 30s</small></button>
+    <button class="xbtn" id="cClear"><b>解除全部封锁</b><small>灾变立即消散</small></button>
+    <button class="xbtn" id="cColony"><b>殖民进度 +100t</b><small>需已解锁火星</small></button>
+  </div>
+  <div class="ovbtns"><button id="creClose">关闭</button></div>
+</div></div>
+
+<script>
+'use strict';
+/* ═══════════════════════════════════════════════════════════
+   引力物流 GRAVITY FREIGHT · P9 声望版
+   新增:合同声望五级(交付攒声望→更大吨位/更高单价/加急单/授信奖金)
+   修复:弹层贴边滚动条(侧栏隐藏条+弹层细条+四周留白) · 存档 v9
+   ═══════════════════════════════════════════════════════════ */
+
+const CFG={
+  startMoney:60, opsCost:5,
+  countDur:3, ascentDur:4.2, transferDur:3.2, dockDur:2.4, boostDur:4.6,
+  refurbTime:12, asmDur:12,
+  routeCost:3, shipCost:8, shipCap:8, shipSpeed:0.6, maxShips:3, loadTime:0.9,
+  skillBase:0.68, skillGain:0.02, skillLoss:0.03, skillCap:0.93, skillFloor:0.5,
+  fuelUpCost:30, colonyGoal:500, winCycle:100, winOpen:45,
+  maxOpen:5, conMin:45, conMax:75,
+  eventFirst:110, eventMin:100, eventMax:200,
+};
+const CARGO={
+  fuel:{name:'燃料',col:'#53d7e0',price:0.24},
+  sup: {name:'补给',col:'#59d98c',price:0.33},
+  mat: {name:'建材',col:'#f5a83c',price:0.46},
+};
+const PARTS={
+  tank:{name:'罐体',col:'#d9a441'},
+  eng: {name:'动力',col:'#ff7a5c'},
+  avi: {name:'航电',col:'#8ab8ff'},
+};
+const BNAMES=['长庚','烛龙','毕方','商羊','精卫','夸父','应龙','重明','刑天','羲和','望舒','屏翳'];
+const CNAMES=['卫星组件','空间站补给','深空探测器','科研设备','医疗物资','精密仪器','殖民舱段','太阳翼阵','水培舱段','通讯阵列','采矿设备','打印建材','冷冻食品','实验样本','光学镜组'];
+const UNLOCK_ORDER=['moon','mars','venus','ceres','europa','io','titan','triton','kuiper'];
+
+/* ── 声望等级 ── */
+const REPS=[
+  {lv:1,name:'初创承运',at:0},
+  {lv:2,name:'可靠伙伴',at:50},
+  {lv:3,name:'金牌物流',at:120},
+  {lv:4,name:'星际骨干',at:220},
+  {lv:5,name:'传奇船东',at:360},
+];
+let rep=0;
+function repLevel(){let l=REPS[0];for(const r of REPS)if(rep>=r.at)l=r;return l;}
+function addRep(v){
+  const before=repLevel();
+  rep=Math.max(0,rep+v);
+  const after=repLevel();
+  if(after.lv>before.lv){
+    const bonus=after.lv*25;
+    earn(bonus);
+    SFX.unlock();
+    log(`声望跃升!LV${after.lv}「${after.name}」· 授信奖金 +${fmtM(bonus)}`,'good');
+    toast(`声望 LV${after.lv} · ${after.name} · +${fmtM(bonus)}`);
+  }
+}
+
+const TECHS={
+  cap1:{br:'cap',name:'扩容货舱',desc:'单船容量 8 → 12t',cost:50,req:null,cap:12},
+  cap2:{br:'cap',name:'重型货舱',desc:'单船容量 12 → 18t',cost:140,req:'cap1',cap:18},
+  cap3:{br:'cap',name:'巨舰货舱',desc:'单船容量 18 → 26t',cost:320,req:'cap2',cap:26},
+  spd1:{br:'spd',name:'高效推进',desc:'全体航速 +25%',cost:60,req:null,spd:1.25},
+  spd2:{br:'spd',name:'离子推进',desc:'全体航速再 +25%',cost:160,req:'spd1',spd:1.25},
+  spd3:{br:'spd',name:'聚变推进',desc:'全体航速再 +30%',cost:360,req:'spd2',spd:1.30},
+};
+const techs={cap1:false,cap2:false,cap3:false,spd1:false,spd2:false,spd3:false};
+let techCap=CFG.shipCap, techSpeed=1;
+function applyTechs(){
+  techCap=CFG.shipCap;techSpeed=1;
+  for(const id of['cap1','cap2','cap3'])if(techs[id])techCap=TECHS[id].cap;
+  for(const id of['spd1','spd2','spd3'])if(techs[id])techSpeed*=TECHS[id].spd;
+}
+
+const TAU=Math.PI*2;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const rand=(a=1,b)=>b===undefined?Math.random()*a:a+Math.random()*(b-a);
+function wrapPi(a){a=a%TAU;if(a>Math.PI)a-=TAU;if(a<-Math.PI)a+=TAU;return a;}
+function qbez(p0,p1,p2,t){const u=1-t;return{x:u*u*p0.x+2*u*t*p1.x+t*t*p2.x,y:u*u*p0.y+2*u*t*p1.y+t*t*p2.y};}
+function qbezD(p0,p1,p2,t){return{x:2*(1-t)*(p1.x-p0.x)+2*t*(p2.x-p1.x),y:2*(1-t)*(p1.y-p0.y)+2*t*(p2.y-p1.y)};}
+const fmtM=v=>'$'+v.toFixed(1)+'M';
+function fmtT(s){s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let W=0,H=0,dpr=1,CX=0,CY=0,RE=0,R1=0,R2=0;
+const cam={ox:0,oy:0,z:1};
+const keys=new Set();
+const PAD_A=-2.0, LZ_A=-1.32;
+function polar(r,a){return{x:CX+Math.cos(a)*r,y:CY+Math.sin(a)*r};}
+function toWorld(mx,my){return{x:(mx-W/2-cam.ox)/cam.z+W/2,y:(my-H/2-cam.oy)/cam.z+H/2};}
+function fitAll(){
+  let maxR=RE*4.1;
+  for(const n of nodes)if(!n.locked)maxR=Math.max(maxR,n.r());
+  cam.ox=0;cam.oy=0;
+  cam.z=clamp(Math.min((W/2-60)/(maxR*1.08),(H/2-60)/(maxR*1.08)),0.28,1);
+}
+function resize(){
+  dpr=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+  CX=W/2;CY=H*0.53;
+  RE=clamp(Math.min(W,H)*0.15,52,148);
+  RE=Math.min(RE,(CY-46)/4.1,(W/2-70)/4.1);
+  R1=RE*1.85;R2=RE*2.62;
+  for(const r of routes){r.path=buildPath(r.a,r.b);for(const s of r.ships)s.d=clamp(s.d,0,r.path.len);}
+}
+addEventListener('resize',resize);
+
+const stars=Array.from({length:190},()=>({x:Math.random(),y:Math.random(),r:rand(.4,1.4),ph:rand(TAU)}));
+
+const prog={moon:false,mars:false,venus:false,ceres:false,europa:false,
+  io:false,titan:false,triton:false,kuiper:false,
+  fuelUp:false,colony:0,colonyDone:false};
+
+const nodes=[
+  {id:'dock',type:'surface',name:'地表仓库',tag:'GROUND',r:()=>RE,angle:PAD_A-0.44,
+    prod:{sup:1.6,mat:1.2},cons:{},cap:100,stock:{fuel:0,sup:20,mat:14},mult:1,flash:0},
+  {id:'pad',type:'pad',name:'发射场',tag:'PAD',r:()=>RE,angle:PAD_A,
+    prod:{},cons:{},cap:0,stock:{fuel:0,sup:0,mat:0},mult:1,flash:0},
+  {id:'depot',type:'depot',name:'九章燃料站',tag:'DEPOT',r:()=>RE*2.24,angle:0.62,
+    prod:{fuel:1.4},cons:{},cap:80,stock:{fuel:0,sup:0,mat:0},mult:1,flash:0},
+  {id:'st1',type:'station',name:'曙光站',tag:'LEO-1',r:()=>R1,angle:-0.15,
+    prod:{},cons:{sup:0.55,fuel:0.35},cap:48,stock:{fuel:0,sup:0,mat:0},mult:1,flash:0},
+  {id:'st2',type:'station',name:'天穹站',tag:'LEO-2',r:()=>R2,angle:3.35,
+    prod:{},cons:{fuel:0.45,mat:0.55},cap:48,stock:{fuel:0,sup:0,mat:0},mult:1,flash:0},
+  {id:'fTank',type:'factory',name:'结构一厂',tag:'TANK',r:()=>RE*1.12,angle:0.9,
+    prod:{},cons:{},cap:0,stock:{fuel:0,sup:0,mat:0},fstock:2,makes:'tank',rate:1/20,mult:1,flash:0},
+  {id:'fEng',type:'factory',name:'动力二厂',tag:'ENGINE',r:()=>RE*1.12,angle:2.9,
+    prod:{},cons:{},cap:0,stock:{fuel:0,sup:0,mat:0},fstock:2,makes:'eng',rate:1/22,mult:1,flash:0},
+  {id:'fAvi',type:'factory',name:'航电三厂',tag:'AVIONICS',r:()=>RE*1.12,angle:1.95,
+    prod:{},cons:{},cap:0,stock:{fuel:0,sup:0,mat:0},fstock:1,makes:'avi',rate:1/27,mult:1,flash:0},
+  {id:'moon',type:'moon',name:'广寒基地',tag:'LUNAR',r:()=>RE*3.1,angle:-2.5,locked:true,
+    cost:60,req:null,plan:'月球计划',desc:'广寒基地 · 月壤建材 · ×1.8',
+    prod:{mat:1.6},cons:{fuel:0.50,sup:0.55},cap:56,stock:{fuel:0,sup:0,mat:0},mult:1.8,flash:0},
+  {id:'mars',type:'mars',name:'荧惑前哨',tag:'MARS',r:()=>RE*4.0,angle:-0.35,locked:true,
+    cost:120,req:'moon',plan:'火星计划',desc:'荧惑前哨 · 窗口管制 · ×2.5 · 殖民500t',
+    prod:{},cons:{sup:0.8,mat:0.9,fuel:0.6},cap:80,stock:{fuel:0,sup:0,mat:0},mult:2.5,flash:0},
+  {id:'venus',type:'venus',name:'浮云城',tag:'VENUS',r:()=>RE*3.55,angle:-1.2,locked:true,
+    cost:200,req:'mars',plan:'金星计划',desc:'浮云城 · 大气城 · ×2.2 · 里程碑200t',
+    prod:{},cons:{sup:0.7,fuel:0.5},cap:60,stock:{fuel:0,sup:0,mat:0},mult:2.2,
+    mileGoal:200,mile:0,mileDone:false,mileReward:80,flash:0},
+  {id:'ceres',type:'ceres',name:'谷神矿站',tag:'CERES',r:()=>RE*4.8,angle:0.9,locked:true,
+    cost:320,req:'venus',plan:'小行星带',desc:'谷神矿站 · 金属建材 · ×3.0 · 里程碑250t',
+    prod:{mat:2.0},cons:{fuel:0.65},cap:64,stock:{fuel:0,sup:0,mat:0},mult:3.0,
+    mileGoal:250,mile:0,mileDone:false,mileReward:120,flash:0},
+  {id:'europa',type:'europa',name:'冰海站',tag:'EUROPA',r:()=>RE*5.6,angle:2.6,locked:true,
+    cost:480,req:'ceres',plan:'木星系',desc:'冰海站 · 冰电解燃料 · ×3.5 · 里程碑300t',
+    prod:{fuel:2.2},cons:{sup:0.65},cap:64,stock:{fuel:0,sup:0,mat:0},mult:3.5,
+    mileGoal:300,mile:0,mileDone:false,mileReward:150,flash:0},
+  {id:'io',type:'io',name:'伊奥熔硫站',tag:'IO',r:()=>RE*6.0,angle:-1.9,locked:true,
+    cost:650,req:'europa',plan:'木卫一计划',desc:'熔硫站 · 工业建材高产 · ×4.0 · 里程碑350t',
+    prod:{mat:2.4},cons:{sup:0.7},cap:70,stock:{fuel:0,sup:0,mat:0},mult:4.0,
+    mileGoal:350,mile:0,mileDone:false,mileReward:200,flash:0},
+  {id:'titan',type:'titan',name:'泰坦烃海站',tag:'TITAN',r:()=>RE*6.8,angle:0.35,locked:true,
+    cost:900,req:'io',plan:'土星计划',desc:'烃海站 · 烃燃料高产 · ×4.5 · 里程碑400t',
+    prod:{fuel:3.0},cons:{sup:0.8},cap:70,stock:{fuel:0,sup:0,mat:0},mult:4.5,
+    mileGoal:400,mile:0,mileDone:false,mileReward:260,flash:0},
+  {id:'triton',type:'triton',name:'特里同冰哨',tag:'TRITON',r:()=>RE*7.6,angle:2.2,locked:true,
+    cost:1300,req:'titan',plan:'海王星计划',desc:'冰哨 · 冰燃料 · ×5.0 · 里程碑450t',
+    prod:{fuel:2.4},cons:{mat:0.6},cap:64,stock:{fuel:0,sup:0,mat:0},mult:5.0,
+    mileGoal:450,mile:0,mileDone:false,mileReward:320,flash:0},
+  {id:'kuiper',type:'kuiper',name:'柯伊伯前哨',tag:'KUIPER',r:()=>RE*8.4,angle:-0.75,locked:true,
+    cost:1800,req:'triton',plan:'柯伊伯远征',desc:'边缘前哨 · 全货种需求 · ×6.0 · 里程碑500t',
+    prod:{},cons:{sup:0.8,mat:0.8,fuel:0.65},cap:90,stock:{fuel:0,sup:0,mat:0},mult:6.0,
+    mileGoal:500,mile:0,mileDone:false,mileReward:400,flash:0},
+];
+const node=id=>nodes.find(n=>n.id===id);
+const nodePos=n=>polar(n.r(),n.angle);
+const stockTotal=n=>n.stock.fuel+n.stock.sup+n.stock.mat;
+const isSurface=n=>n.r()<=RE*1.2;
+
+let money=CFG.startMoney, gtime=0, speed=1, paused=false, shake=0;
+let slowmo=0, cineT=1, lastWin=null;
+let contractSeq=0, nextContractIn=25, contractsVer=0;
+let nextEventIn=CFG.eventFirst, meteorLeft=0, stormLeft=0, meteorAcc=0;
+let creator=false, preCreatorMoney=0;
+const stats={launches:0,landings:0,earned:0,freight:0,tons:0,assembled:0,contractsDone:0,
+  exp:{ops:0,route:0,ship:0,expand:0,research:0},
+  fBy:{fuel:0,sup:0,mat:0},tBy:{fuel:0,sup:0,mat:0}};
+
+function spend(cost){
+  if(creator)return true;
+  if(money<cost)return false;
+  money-=cost;return true;
+}
+function earn(v){if(!creator)money+=v;}
+
+let boosterSerial=0;
+const boosters=[];
+function newBooster(){
+  const b={id:++boosterSerial,
+    name:BNAMES[(boosterSerial-1)%BNAMES.length]+' · B-1'+String(boosterSerial).padStart(2,'0'),
+    flights:0,status:'installed',refurbT:0};
+  boosters.push(b);return b;
+}
+const b0={id:1,name:'长庚 · B-101',flights:0,status:'installed',refurbT:0};
+boosters.push(b0);boosterSerial=1;
+
+const pad={stock:{tank:1,eng:1,avi:1},asm:null,queue:[{booster:b0}],launched:0};
+let skill=CFG.skillBase;
+
+/* ── 合同(声望加成版) ── */
+const contracts=[];
+let selected=null;
+function genContract(silent){
+  const dests=nodes.filter(n=>!n.locked&&Object.keys(n.cons).length);
+  const d=dests[Math.floor(Math.random()*dests.length)];
+  const lvl=repLevel().lv;
+  const tons=clamp(4+Math.floor(Math.random()*(5+lvl*2)),4,14);
+  const tier=d.r()/RE;
+  const urgent=lvl>=3&&Math.random()<0.15;
+  let reward=Math.round(tons*(1.9+0.35*tier)*(0.9+Math.random()*0.4)*(1+(lvl-1)*0.15)*10)/10;
+  let deadline=Math.round((200+tier*90+Math.random()*160)*(1+(lvl-1)*0.1));
+  if(urgent){reward=Math.round(reward*1.6*10)/10;deadline=Math.round(deadline*0.6);}
+  const name=(urgent?'加急 · ':'')+CNAMES[Math.floor(Math.random()*CNAMES.length)];
+  const c={id:'c'+(++contractSeq),name,station:d,tons,reward,deadline,state:'open',_d0:deadline,urgent};
+  contracts.push(c);contractsVer++;
+  while(contracts.filter(x=>x.state==='done'||x.state==='failed').length>6){
+    const i=contracts.findIndex(x=>x.state==='done'||x.state==='failed');
+    const rm=contracts.splice(i,1)[0];
+    if(selected===rm)selected=null;
+    contractsVer++;}
+  if(!silent)log(`新合同:${urgent?'⚡ ':''}「${name}」→ ${d.name} · ${tons}t · ${fmtM(reward)}`);
+  return c;
+}
+
+let flight=null; const returns=[], parts=[], floats=[];
+
+let mode='launch', routeSel=null, routesVer=0;
+let shipSerial=0;
+const routes=[], routeRows=[];
+const mouse={x:-999,y:-999,wx:-999,wy:-999,over:null};
+const SEG=56;
+function buildPath(a,b){
+  const pa=nodePos(a),pb=nodePos(b),ra=a.r(),rb=b.r(),pts=[];
+  if(Math.abs(ra-rb)<4){
+    const d=wrapPi(b.angle-a.angle);
+    for(let i=0;i<=SEG;i++)pts.push(polar(ra,a.angle+d*i/SEG));
+  }else{
+    const midA=a.angle+wrapPi(b.angle-a.angle)*0.5;
+    const p1=polar((ra+rb)/2*1.05,midA);
+    for(let i=0;i<=SEG;i++)pts.push(qbez(pa,p1,pb,i/SEG));
+  }
+  const cum=[0];
+  for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y));
+  return{pts,cum,len:cum[cum.length-1]};
+}
+function pointAt(path,d){
+  d=clamp(d,0,path.len);let i=0;
+  while(i<path.cum.length-2&&path.cum[i+1]<d)i++;
+  const seg=(path.cum[i+1]-path.cum[i])||1,k=(d-path.cum[i])/seg;
+  return{x:lerp(path.pts[i].x,path.pts[i+1].x,k),y:lerp(path.pts[i].y,path.pts[i+1].y,k)};
+}
+function tangentAt(path,d){
+  const p1=pointAt(path,clamp(d-2,0,path.len)),p2=pointAt(path,clamp(d+2,0,path.len));
+  return Math.atan2(p2.y-p1.y,p2.x-p1.x);
+}
+function createRoute(a,b){const r={id:Date.now()+Math.random(),a,b,path:buildPath(a,b),ships:[],delT:0,delM:0,blocked:0};routes.push(r);routesVer++;return r;}
+function pickCargo(n,ground){
+  if(ground&&n.type==='factory'&&Math.floor(n.fstock)>=1)return n.makes;
+  let bc=null,bv=0.5;for(const c in CARGO)if(n.stock[c]>bv){bv=n.stock[c];bc=c;}
+  return bc;
+}
+function routeRuleErr(a,b){
+  if(a.locked||b.locked)return '该节点尚未解锁';
+  if(a.type==='pad')return '发射场只收零件,不能往外发货';
+  if(b.type==='pad'&&a.type!=='factory')return '发射场专线仅承接工厂零件';
+  if(a.type==='factory'&&!(b.type==='pad'||b.id==='dock'))return '火箭零件上不了太空,只接地面线';
+  return null;
+}
+function addShip(r){
+  if(r.ships.length>=CFG.maxShips)return;
+  if(!spend(CFG.shipCost)){SFX.deny();toast('资金不足 —— 货船需 '+fmtM(CFG.shipCost));return;}
+  stats.exp.ship+=CFG.shipCost;
+  r.ships.push({id:++shipSerial,phase:'load',d:0,timer:rand(.2,.6),cargo:null,amt:0,repick:0});
+  routesVer++;SFX.tick();log(`一艘货船加入「${r.a.name} → ${r.b.name}」`);
+}
+function delRoute(r){
+  const refund=CFG.routeCost*0.5+r.ships.length*CFG.shipCost*0.5;
+  earn(refund);
+  stats.exp.route-=CFG.routeCost*0.5;stats.exp.ship-=r.ships.length*CFG.shipCost*0.5;
+  for(const s of r.ships){const p=pointAt(r.path,s.d);burst(p,8,['#9fd8ef','#53d7e0'],80);}
+  routes.splice(routes.indexOf(r),1);routesVer++;
+  log(`航线拆除,回收 ${fmtM(refund)}`);
+}
+function windowInfo(){
+  const t=gtime%CFG.winCycle;
+  return t<CFG.winOpen?{open:true,left:CFG.winOpen-t}:{open:false,left:CFG.winCycle-t};
+}
+const isMarsRoute=r=>r.a.type==='mars'||r.b.type==='mars';
+
+function spawnEvent(){
+  if(routes.length===0){nextEventIn=60;return;}
+  const outerOk=nodes.some(n=>!n.locked&&n.r()>RE*3.3);
+  if(Math.random()<0.5||!outerOk){
+    const r=routes[Math.floor(Math.random()*routes.length)];
+    const dur=rand(18,32);
+    r.blocked=Math.max(r.blocked,dur);
+    meteorLeft=Math.max(meteorLeft,dur);
+    SFX.alarm();
+    log(`⚠ 陨石雨!「${r.a.name} → ${r.b.name}」封锁 ${Math.round(dur)}s`,'bad');
+    toast('陨石雨来袭 —— 航线封锁');
+  }else{
+    const dur=rand(22,38);
+    stormLeft=Math.max(stormLeft,dur);
+    let hit=0;
+    for(const r of routes){
+      if(r.a.r()>RE*3.3||r.b.r()>RE*3.3){r.blocked=Math.max(r.blocked,dur);hit++;}}
+    SFX.alarm();
+    log(`⚠ 太阳风暴!外环 ${hit} 条航线封锁 ${Math.round(dur)}s`,'bad');
+    toast('太阳风暴 —— 外环航线全部封锁');
+  }
+}
+
+let AC=null,master=null,muted=false,lastBlip=-9;
+function ensureAC(){try{
+  if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.gain.value=.3;master.connect(AC.destination);}
+  if(AC.state==='suspended')AC.resume();
+}catch(e){}}
+addEventListener('pointerdown',ensureAC);
+function tone(f,dur,type='sine',vol=.2,delay=0,slide=0){if(!AC||muted)return;
+  const t0=AC.currentTime+delay,o=AC.createOscillator(),g=AC.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t0);
+  if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(20,slide),t0+dur);
+  g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(vol,t0+.012);
+  g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+  o.connect(g);g.connect(master);o.start(t0);o.stop(t0+dur+.05);}
+function noiseBurst(dur,vol,freq=400){if(!AC||muted)return;
+  const t0=AC.currentTime,len=Math.floor(AC.sampleRate*dur),buf=AC.createBuffer(1,len,AC.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
+  const n=AC.createBufferSource();n.buffer=buf;
+  const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;
+  const g=AC.createGain();g.gain.setValueAtTime(vol,t0);g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+  n.connect(f);f.connect(g);g.connect(master);n.start(t0);}
+const SFX={
+  ignition(){noiseBurst(1.4,.5,320);tone(48,1.2,'sine',.35,0,30);},
+  sep(){tone(900,.07,'square',.12);tone(620,.09,'square',.1,.06);},
+  boomRing(){noiseBurst(.35,.25,1200);},
+  boostback(){noiseBurst(.5,.2,520);},
+  land(){tone(392,.12,'triangle',.2);tone(523,.16,'triangle',.2,.1);tone(659,.28,'triangle',.18,.2);},
+  boom(){noiseBurst(.9,.6,140);tone(70,.6,'sine',.4,0,28);},
+  cash(){tone(660,.09,'triangle',.18);tone(880,.1,'triangle',.18,.08);tone(1318,.14,'triangle',.15,.16);},
+  tick(){tone(1250,.03,'square',.06);},
+  count(){tone(740,.06,'square',.09);},
+  route(){tone(520,.08,'triangle',.16);tone(780,.11,'triangle',.16,.08);},
+  deny(){tone(150,.16,'square',.12);},
+  blip(){if(gtime-lastBlip<0.35)return;lastBlip=gtime;tone(980,.05,'triangle',.09);},
+  crane(){tone(300,.2,'sawtooth',.06);tone(240,.2,'sawtooth',.05,.1);},
+  asmDone(){tone(523,.1,'triangle',.2);tone(659,.12,'triangle',.2,.09);tone(784,.2,'triangle',.2,.18);},
+  unlock(){tone(392,.12,'triangle',.2);tone(587,.14,'triangle',.2,.1);tone(880,.24,'triangle',.2,.2);noiseBurst(.4,.1,900);},
+  winOpen(){tone(587,.1,'triangle',.16);tone(880,.16,'triangle',.16,.09);},
+  winClose(){tone(440,.12,'triangle',.12);tone(294,.16,'triangle',.12,.1);},
+  alarm(){tone(220,.2,'square',.18);tone(175,.28,'square',.18,.2);},
+};
+
+const logEl=document.getElementById('log');
+function log(msg,cls=''){
+  const d=document.createElement('div');if(cls)d.className=cls;
+  d.innerHTML=`<b>T+${fmtT(gtime)}</b>${msg}`;
+  logEl.appendChild(d);while(logEl.children.length>7)logEl.removeChild(logEl.firstChild);
+}
+let toastTimer=null;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* ── 存档(v9) ── */
+const SAVE_KEY='gravityFreight.save.v9';
+function saveGame(silent=true){
+  try{
+    const data={v:9,money,gtime,skill,rep,contractSeq,nextContractIn,
+      creator,preCreatorMoney,shipSerial,
+      stats:{...stats,exp:{...stats.exp},fBy:{...stats.fBy},tBy:{...stats.tBy}},
+      prog:{...prog},techs:{...techs},boosterSerial,
+      boosters:boosters.map(b=>({...b,status:b.status==='inflight'?'refurb':b.status,
+        refurbT:b.status==='inflight'?4:b.refurbT})),
+      pad:{stock:{...pad.stock},launched:pad.launched,
+        queue:pad.queue.map(r=>r.booster.id),
+        asm:pad.asm?{t:pad.asm.t,bid:pad.asm.booster.id}:null},
+      contracts:contracts.filter(c=>c.state==='open'||c.state==='flying')
+        .map(c=>({id:c.id,name:c.name,st:c.station.id,tons:c.tons,reward:c.reward,deadline:c.deadline,state:c.state,_d0:c._d0,urgent:!!c.urgent})),
+      nodes:nodes.map(n=>({id:n.id,stock:{...n.stock},fstock:n.fstock,mile:n.mile,mileDone:n.mileDone})),
+      routes:routes.map(r=>({a:r.a.id,b:r.b.id,delT:r.delT,delM:r.delM,
+        ships:r.ships.map(s=>({id:s.id,d:s.d,phase:s.phase,cargo:s.cargo,amt:s.amt}))})),
+    };
+    localStorage.setItem(SAVE_KEY,JSON.stringify(data));
+    if(!silent)toast('进度已保存');
+  }catch(e){}
+}
+function loadGame(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;
+    const d=JSON.parse(raw);if(d.v!==9)return false;
+    money=d.money;gtime=d.gtime;skill=d.skill;rep=d.rep||0;
+    contractSeq=d.contractSeq;nextContractIn=d.nextContractIn;
+    creator=!!d.creator;preCreatorMoney=d.preCreatorMoney||0;
+    shipSerial=d.shipSerial||0;
+    if(creator)money=99999;
+    Object.assign(stats,d.stats);
+    Object.assign(stats.exp,d.stats.exp);Object.assign(stats.fBy,d.stats.fBy);Object.assign(stats.tBy,d.stats.tBy);
+    Object.assign(prog,d.prog);
+    Object.assign(techs,d.techs||{});applyTechs();
+    for(const id of UNLOCK_ORDER)node(id).locked=!prog[id];
+    boosterSerial=d.boosterSerial;
+    boosters.length=0;d.boosters.forEach(b=>boosters.push({...b}));
+    pad.queue=d.pad.queue.map(id=>({booster:boosters.find(b=>b.id===id)})).filter(r=>r.booster);
+    pad.asm=d.pad.asm?{t:d.pad.asm.t,booster:boosters.find(b=>b.id===d.pad.asm.bid)}:null;
+    Object.assign(pad.stock,d.pad.stock);pad.launched=d.pad.launched;
+    contracts.length=0;
+    for(const c of d.contracts){const st=node(c.st);if(!st)continue;
+      contracts.push({...c,station:st});}
+    contractsVer++;
+    for(const n of nodes){const s=d.nodes.find(x=>x.id===n.id);
+      if(s){Object.assign(n.stock,s.stock);
+        if(s.fstock!==undefined&&n.fstock!==undefined)n.fstock=s.fstock;
+        if(s.mile!==undefined&&n.mileGoal)n.mile=s.mile;
+        if(s.mileDone!==undefined&&n.mileGoal)n.mileDone=s.mileDone;}}
+    routes.length=0;
+    for(const r of d.routes){const a=node(r.a),b=node(r.b);if(!a||!b)continue;
+      const rt=createRoute(a,b);rt.delT=r.delT||0;rt.delM=r.delM||0;
+      rt.ships=r.ships.map(s=>({...s,timer:0.4,repick:0}));}
+    nextEventIn=80;
+    return true;
+  }catch(e){return false;}
+}
+addEventListener('beforeunload',()=>saveGame(true));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveGame(true);});
+
+function buyNode(id){
+  const n=node(id);
+  if(prog[id]){SFX.deny();return;}
+  if(n.req&&!prog[n.req]){SFX.deny();toast(`需先解锁「${node(n.req).name}」`);return;}
+  if(!spend(n.cost)){SFX.deny();toast(`资金不足 —— ${n.plan} 需 ${fmtM(n.cost)}`);return;}
+  stats.exp.expand+=n.cost;prog[id]=true;n.locked=false;
+  SFX.unlock();log(`${n.plan}启动 —— ${n.name} 接入轨道网`,'good');
+  toast(n.name+' 已解锁 —— 按 F 全览外环');
+  saveGame(true);
+}
+function buyTech(id){
+  const t=TECHS[id];
+  if(techs[id]){SFX.deny();return;}
+  if(t.req&&!techs[t.req]){SFX.deny();toast(`需先研发「${TECHS[t.req].name}」`);return;}
+  if(!spend(t.cost)){SFX.deny();toast(`资金不足 —— ${t.name} 需 ${fmtM(t.cost)}`);return;}
+  stats.exp.research+=t.cost;techs[id]=true;applyTechs();
+  SFX.asmDone();log(`研发完成:${t.name} —— ${t.desc}`,'good');
+  toast(t.name+' 已列装全舰队');
+  saveGame(true);
+}
+
+function orderRocket(){
+  if(pad.queue.length>=2||pad.asm)return;
+  const reused=boosters.find(b=>b.status==='ready');
+  const need=reused?{tank:0,eng:0,avi:1}:{tank:1,eng:1,avi:1};
+  for(const p in need){if(need[p]&&pad.stock[p]<need[p]){SFX.deny();toast('仓库缺少 '+PARTS[p].name);return;}}
+  for(const p in need)if(need[p])pad.stock[p]--;
+  let b;
+  if(reused){b=reused;b.status='installed';}
+  else b=newBooster();
+  pad.asm={t:0,booster:b};
+  SFX.crane();
+  log(reused?`复用「${b.name}」就位 —— 仅需航电,开始总装`:`新助推器「${b.name}」投产,总装开始`);
+}
+function launch(){
+  if(!selected||selected.state!=='open'||padBusy())return;
+  if(pad.queue.length<1)return;
+  if(!spend(CFG.opsCost))return;
+  stats.exp.ops+=CFG.opsCost;
+  const rk=pad.queue.shift();
+  const b=rk.booster;b.status='inflight';b.flights++;
+  stats.launches++;pad.launched++;
+  const c=selected;
+  c.state='flying';contractsVer++;
+  const R=c.station.r(),stA=c.station.angle;
+  const dir=Math.sign(wrapPi(stA-PAD_A))||1;
+  const iA=stA-dir*0.7, arc=wrapPi(stA-iA);
+  const p0=polar(RE+14,PAD_A),p2=polar(R,iA);
+  const p1=polar(RE+(R-RE)*.55,PAD_A+wrapPi(iA-PAD_A)*.5);
+  const L=polar(RE+8,LZ_A),ctrl=polar(R*.55,iA+wrapPi(LZ_A-iA)*.5);
+  flight={c,booster:b,prob:skill,phase:'countdown',t:0,paid:false,lastCd:9,boom:false,
+    geom:{p0,p1,p2,R,iA,arc,stA,L,ctrl}};
+  log(`「${c.name}」点火程序启动 · ${b.name} 第 ${b.flights} 飞`);
+  document.getElementById('count').classList.add('show');
+  selected=null;syncCards();
+}
+function padBusy(){return flight&&(flight.phase==='countdown'||flight.phase==='ascent');}
+function makeReturn(){
+  const g=flight.geom;
+  returns.push({booster:flight.booster,prob:flight.prob,t:0,dur:CFG.boostDur,
+    S:g.p2,ctrl:g.ctrl,L:g.L,state:'fly',t2:0,sndB:false,sndL:false});
+}
+function triggerCine(dur){slowmo=dur;cineT=dur;}
+
+function spawn(n,fn){for(let i=0;i<n;i++){if(parts.length>900)return;parts.push(fn(i));}}
+function exhaust(pos,ang,mag){spawn(2,()=>({x:pos.x,y:pos.y,
+  vx:-Math.cos(ang)*rand(20,60)*mag+rand(-14,14),vy:-Math.sin(ang)*rand(20,60)*mag+rand(-14,14),
+  life:rand(.3,.7),max:.7,size:rand(1.5,3.5),col:'spark'}));}
+function smoke(pos,ang){parts.push({x:pos.x,y:pos.y,
+  vx:-Math.cos(ang)*rand(8,30)+rand(-20,20),vy:-Math.sin(ang)*rand(8,30)+rand(-20,20),
+  life:rand(.9,1.8),max:1.8,size:rand(3,7),col:'smoke'});}
+function burst(pos,n,cols,sp){spawn(n,()=>{const a=rand(TAU),s=rand(.3,1)*sp;
+  return{x:pos.x,y:pos.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.4,1.1),max:1.1,size:rand(1.5,4),col:cols[Math.floor(rand(cols.length))]};});}
+function floatText(text,x,y,col='#ffd166'){if(floats.length>11)return;floats.push({text,x,y,life:1.7,col});}
+function spawnMeteor(){
+  parts.push({col:'meteor',x:CX+rand(-RE*5,RE*5),y:CY-RE*4.6,
+    vx:rand(-90,-40),vy:rand(140,230),life:rand(1.2,2),max:2,size:rand(1,2.4)});
+}
+
+let saveAcc=0;
+function update(dt){
+  if(dt<=0)return;
+  gtime+=dt;shake=Math.max(0,shake-dt*7);
+  saveAcc+=dt;if(saveAcc>12){saveAcc=0;saveGame(true);}
+  for(const n of nodes)n.flash=Math.max(0,n.flash-dt);
+
+  if(prog.mars){const w=windowInfo().open;
+    if(w!==lastWin){lastWin=w;
+      if(w){SFX.winOpen();log('火星发射窗口开启','good');}
+      else SFX.winClose();}}
+
+  nextContractIn-=dt;
+  if(nextContractIn<=0){
+    nextContractIn=rand(CFG.conMin,CFG.conMax);
+    if(contracts.filter(c=>c.state==='open').length<CFG.maxOpen)genContract();
+  }
+
+  if(gtime>60){
+    nextEventIn-=dt;
+    if(nextEventIn<=0){spawnEvent();nextEventIn=rand(CFG.eventMin,CFG.eventMax);}
+  }
+  meteorLeft=Math.max(0,meteorLeft-dt);
+  stormLeft=Math.max(0,stormLeft-dt);
+  if(meteorLeft>0){meteorAcc+=dt;
+    while(meteorAcc>0.07){meteorAcc-=0.07;spawnMeteor();}}
+  else meteorAcc=0;
+
+  for(const n of nodes){
+    if(n.locked)continue;
+    for(const c in n.prod){
+      const room=Math.max(0,n.cap-stockTotal(n));
+      n.stock[c]+=Math.min(n.prod[c]*dt,room);
+    }
+    for(const c in n.cons)n.stock[c]=Math.max(0,n.stock[c]-n.cons[c]*dt);
+    if(n.type==='factory')n.fstock=Math.min(3,n.fstock+n.rate*dt);
+  }
+
+  if(pad.asm){pad.asm.t+=dt;
+    if(pad.asm.t>=CFG.asmDur){
+      const b=pad.asm.booster;
+      pad.queue.push({booster:b});
+      pad.asm=null;stats.assembled++;
+      const pp=polar(RE,PAD_A);
+      burst(pp,16,['#ffd166','#f5a83c','#ffffff'],70);
+      floatText('总装完成',pp.x,pp.y-40,'#59d98c');
+      log(`总装完成 —— 苍鹭-${pad.launched+1} 与「${b.name}」转入发射位`,'good');SFX.asmDone();
+    }}
+
+  for(const b of boosters){if(b.status==='refurb'){b.refurbT-=dt;
+    if(b.refurbT<=0){b.status='ready';log(`「${b.name}」检修完毕,转入待命复用`,'good');}}}
+
+  for(const r of routes){
+    if(r.blocked>0){
+      r.blocked-=dt;
+      if(r.blocked<=0){r.blocked=0;
+        log(`航线恢复:${r.a.name} → ${r.b.name}`,'good');}
+      continue;
+    }
+    const ground=isSurface(r.a)&&isSurface(r.b);
+    const toMars=r.b.type==='mars';
+    for(const s of r.ships){
+      const v=CFG.shipSpeed*RE*(prog.fuelUp?1.35:1)*techSpeed*(s.amt>0?0.85:1.05);
+      const blocked=dir=>{
+        for(const o of r.ships){if(o===s)continue;
+          const isOb=(o.phase==='go'&&dir===1)||(o.phase==='back'&&dir===-1)
+            ||(dir===1&&o.phase==='unload')||(dir===-1&&o.phase==='load');
+          if(!isOb)continue;
+          const gap=dir===1?o.d-s.d:s.d-o.d;
+          if(gap>=0&&gap<20){
+            if(gap<0.01&&o.id>=s.id)continue;
+            return true;}}
+        return false;};
+      switch(s.phase){
+        case 'load':
+          if(!s.cargo){s.repick-=dt;
+            if(s.repick<=0){s.repick=0.6;const c=pickCargo(r.a,ground);
+              if(c){
+                if(r.a.type==='factory'){r.a.fstock-=1;s.amt=1;}
+                else{const amt=Math.min(techCap,r.a.stock[c]);r.a.stock[c]-=amt;s.amt=amt;}
+                s.cargo=c;s.timer=CFG.loadTime;}}}
+          else{s.timer-=dt;
+            if(s.timer<=0){
+              if(toMars&&!windowInfo().open){}
+              else s.phase='go';}}
+          break;
+        case 'go':
+          if(!blocked(1)){s.d+=v*dt;if(s.d>=r.path.len){s.d=r.path.len;s.phase='unload';s.timer=0.15;}}
+          break;
+        case 'unload':{
+          if(PARTS[s.cargo]){
+            if(pad.stock[s.cargo]>=4)break;
+            pad.stock[s.cargo]+=s.amt;
+            const p=nodePos(r.b);floatText(PARTS[s.cargo].name+' +'+s.amt,p.x,p.y-18,PARTS[s.cargo].col);
+            SFX.blip();
+            s.cargo=null;s.amt=0;s.phase='back';
+          }else{
+            const space=Math.max(0,r.b.cap-stockTotal(r.b));
+            if(space<=0.01)break;
+            const del=Math.min(s.amt,space);s.amt-=del;
+            r.b.stock[s.cargo]+=del;
+            const pay=del*CARGO[s.cargo].price*(r.b.mult||1);
+            earn(pay);stats.freight+=pay;stats.tons+=del;r.delT+=del;r.delM+=pay;
+            stats.fBy[s.cargo]+=pay;stats.tBy[s.cargo]+=del;
+            if(toMars&&!prog.colonyDone){
+              prog.colony+=del;
+              if(prog.colony>=CFG.colonyGoal)colonyFounded();}
+            if(r.b.mileGoal&&!r.b.mileDone){
+              r.b.mile=(r.b.mile||0)+del;
+              if(r.b.mile>=r.b.mileGoal){r.b.mileDone=true;earn(r.b.mileReward);
+                const p=nodePos(r.b);burst(p,30,['#59d98c','#ffd166','#53d7e0'],200);
+                floatText('里程碑 +'+fmtM(r.b.mileReward),p.x,p.y-30,'#59d98c');
+                log(`${r.b.name} 里程碑达成!奖金 +${fmtM(r.b.mileReward)}`,'good');
+                SFX.unlock();}}
+            const p=nodePos(r.b);floatText('+'+fmtM(pay),p.x+rand(-8,8),p.y-18,CARGO[s.cargo].col);
+            SFX.blip();
+            if(s.amt<=0.01){s.cargo=null;s.phase='back';}
+          }
+          break;}
+        case 'back':
+          if(!blocked(-1)){s.d-=v*dt;
+            if(s.d<=0){s.d=0;s.phase='load';s.timer=0.4;s.repick=0;}}
+          break;
+      }
+    }
+  }
+
+  for(const c of contracts){
+    if(c.state==='open'){c.deadline-=dt;
+      if(c.deadline<=0){c.state='failed';contractsVer++;
+        log(`合同「${c.name}」逾期失效`,'bad');
+        if(selected===c){selected=null;syncCards();}}}
+  }
+
+  if(flight){const f=flight,g=f.geom;f.t+=dt;
+    if(f.phase==='countdown'){
+      const n=Math.ceil(CFG.countDur-f.t);
+      if(n!==f.lastCd&&n>0){f.lastCd=n;const el=document.getElementById('countNum');
+        el.textContent=n;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');SFX.count();}
+      if(f.t>=CFG.countDur){f.phase='ascent';f.t=0;shake=6;SFX.ignition();
+        document.getElementById('count').classList.remove('show');
+        log(`点火!苍鹭-${pad.launched} 升空`);
+        const pos=polar(RE+16,PAD_A);for(let i=0;i<14;i++)smoke(pos,PAD_A);}
+    }else if(f.phase==='ascent'){
+      const k=Math.pow(f.t/CFG.ascentDur,1.35);
+      const pos=qbez(g.p0,g.p1,g.p2,k),d=qbezD(g.p0,g.p1,g.p2,k),ang=Math.atan2(d.y,d.x);
+      exhaust(pos,ang,1);if(Math.random()<.6)smoke(pos,ang);
+      if(!f.boom&&k>=0.55){f.boom=true;SFX.boomRing();log('Max-Q 通过 · 音爆');
+        parts.push({col:'ring',x:pos.x,y:pos.y,r:6,vx:0,vy:0,life:.9,max:.9,size:0});}
+      if(f.t>=CFG.ascentDur){f.phase='transfer';f.t=0;SFX.sep();
+        burst(g.p2,14,['#ffffff','#9fd8ef'],120);
+        log('一级分离 · 二级继续入轨');makeReturn();}
+    }else if(f.phase==='transfer'){
+      const ang=g.iA+g.arc*(f.t/CFG.transferDur);
+      exhaust(polar(g.R,ang),ang+(g.arc>0?Math.PI/2:-Math.PI/2),.4);
+      if(f.t>=CFG.transferDur){f.phase='dock';f.t=0;
+        log(`与「${f.c.station.name}」对接完成,开始卸货`);SFX.tick();}
+    }else if(f.phase==='dock'){
+      if(!f.paid&&f.t>=1.1){f.paid=true;
+        earn(f.c.reward);stats.earned+=f.c.reward;stats.contractsDone++;
+        addRep(f.c.tons+(f.c.urgent?6:0));
+        f.c.state='done';f.c.station.flash=1;contractsVer++;
+        const sp=polar(g.R,g.stA);floatText('+'+fmtM(f.c.reward),sp.x,sp.y-20);
+        log(`交付「${f.c.name}」,入账 +${fmtM(f.c.reward)} · 声望 +${f.c.tons+(f.c.urgent?6:0)}`,'good');
+        SFX.cash();
+        if(!selected||selected.state!=='open')
+          selected=contracts.find(x=>x.state==='open')||null;
+        syncCards();}
+      if(f.t>=CFG.dockDur){flight=null;}
+    }
+  }
+
+  for(let i=returns.length-1;i>=0;i--){const r=returns[i];
+    if(r.state==='fly'){r.t+=dt;const k=clamp(r.t/r.dur,0,1);
+      if(k>.2&&!r.sndB){r.sndB=true;SFX.boostback();log(`「${r.booster.name}」返场点火`);}
+      if(k>.86&&!r.sndL){r.sndL=true;SFX.tick();log('着陆腿展开');}
+      if(k>=1){
+        if(Math.random()*100<r.prob*100){
+          r.state='landed';r.t2=0;stats.landings++;
+          skill=Math.min(CFG.skillCap,skill+CFG.skillGain);
+          r.booster.status='refurb';r.booster.refurbT=CFG.refurbTime;
+          burst(r.L,22,['#c9b48a','#8a7a5c'],90);
+          floatText('回收成功',r.L.x,r.L.y-26,'#59d98c');
+          log(`「${r.booster.name}」着陆成功!第 ${r.booster.flights} 飞达成`,'good');
+          SFX.land();triggerCine(1.5);
+        }else{
+          burst(r.L,42,['#ff5d5d','#f5a83c','#ffd166'],220);shake=7;
+          skill=Math.max(CFG.skillFloor,skill-CFG.skillLoss);
+          r.booster.status='lost';
+          log(`「${r.booster.name}」着陆失败,损毁`,'bad');SFX.boom();triggerCine(0.8);
+          returns.splice(i,1);continue;
+        }}
+    }else{r.t2+=dt;if(r.t2>2.6)returns.splice(i,1);}
+  }
+
+  for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.life-=dt;
+    if(p.life<=0){parts.splice(i,1);continue;}
+    if(p.col==='ring'){p.r+=95*dt;continue;}
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.985;p.vy*=.985;}
+  for(let i=floats.length-1;i>=0;i--){const f=floats[i];f.life-=dt;f.y-=24*dt;
+    if(f.life<=0)floats.splice(i,1);}
+}
+function colonyFounded(){
+  prog.colonyDone=true;shake=8;
+  const mp=nodePos(node('mars'));
+  for(let i=0;i<4;i++)setTimeout(()=>burst(mp,36,['#59d98c','#ffd166','#53d7e0','#ff7a5c'],240),i*180);
+  log('500 吨物资送达 —— 荧惑前哨建成!','good');SFX.cash();SFX.unlock();
+  setTimeout(()=>{
+    document.getElementById('ovTitle').textContent='荧惑前哨建成';
+    document.getElementById('ovSub').textContent='人类在你的航线上迈出了这一步 · 深空仍在等待';
+    const lv=repLevel();
+    document.getElementById('ovStats').innerHTML=
+      `<tr><td>殖民物资运量</td><td>${prog.colony.toFixed(0)}t</td></tr>`+
+      `<tr><td>货运总收入</td><td>${fmtM(stats.freight)}</td></tr>`+
+      `<tr><td>完成合同 / 声望</td><td>${stats.contractsDone} / LV${lv.lv} ${lv.name}</td></tr>`+
+      `<tr><td>发射 / 回收 / 损毁</td><td>${stats.launches} / ${stats.landings} / ${boosters.filter(b=>b.status==='lost').length}</td></tr>`+
+      `<tr><td>用时</td><td>T+${fmtT(gtime)}</td></tr>`;
+    document.getElementById('overlay').classList.add('show');
+  },1500);
+}
+function openReport(){
+  const f=stats.fBy,exp=stats.exp;
+  const expT=exp.ops+exp.route+exp.ship+exp.expand+exp.research;
+  const revT=stats.earned+stats.freight;
+  const lost=boosters.filter(b=>b.status==='lost').length;
+  const techN=Object.values(techs).filter(Boolean).length;
+  const lv=repLevel();
+  document.getElementById('repStats').innerHTML=
+    `<tr><td colspan="2" style="color:var(--green);letter-spacing:.2em">收入 REVENUE</td></tr>
+     <tr><td>合同营收(${stats.contractsDone} 份)</td><td>${fmtM(stats.earned)}</td></tr>
+     <tr><td>货运 · 燃料</td><td>${fmtM(f.fuel)}</td></tr>
+     <tr><td>货运 · 补给</td><td>${fmtM(f.sup)}</td></tr>
+     <tr><td>货运 · 建材</td><td>${fmtM(f.mat)}</td></tr>
+     <tr><td colspan="2" style="color:var(--red);letter-spacing:.2em">支出 EXPENSE</td></tr>
+     <tr><td>点火费</td><td>${fmtM(exp.ops)}</td></tr>
+     <tr><td>航线建设(净)</td><td>${fmtM(exp.route)}</td></tr>
+     <tr><td>货船采购(净)</td><td>${fmtM(exp.ship)}</td></tr>
+     <tr><td>星际扩张</td><td>${fmtM(exp.expand)}</td></tr>
+     <tr><td>船级研发(${techN}/6)</td><td>${fmtM(exp.research)}</td></tr>
+     <tr><td colspan="2" style="color:var(--gold);letter-spacing:.2em">总览 SUMMARY</td></tr>
+     <tr><td>总营收 / 总支出</td><td>${fmtM(revT)} / ${fmtM(expT)}</td></tr>
+     <tr><td>净利润(不含初始资金)</td><td>${fmtM(revT-expT)}</td></tr>
+     <tr><td>声望等级</td><td>LV${lv.lv} ${lv.name} · ${Math.floor(rep)} 点</td></tr>
+     <tr><td>货运量 燃/补/建</td><td>${stats.tBy.fuel.toFixed(0)} / ${stats.tBy.sup.toFixed(0)} / ${stats.tBy.mat.toFixed(0)} t</td></tr>
+     <tr><td>航线 / 在航货船</td><td>${routes.length} / ${routes.reduce((a,r)=>a+r.ships.length,0)}</td></tr>
+     <tr><td>发射 / 回收 / 损毁</td><td>${stats.launches} / ${stats.landings} / ${lost}</td></tr>
+     <tr><td>荧惑殖民</td><td>${prog.colonyDone?'建成 ✓':prog.colony.toFixed(0)+' / '+CFG.colonyGoal+'t'}</td></tr>`;
+  document.getElementById('repOverlay').classList.add('show');SFX.tick();
+}
+
+/* ── 绘制 ── */
+function rr(x,y,w,h,r){ctx.beginPath();
+  if(ctx.roundRect){ctx.roundRect(x,y,w,h,r);return;}
+  ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function label(text,x,y,col='rgba(219,230,244,.75)',size=11){
+  ctx.font=`500 ${size}px 'Noto Sans SC'`;ctx.fillStyle=col;ctx.textAlign='center';ctx.fillText(text,x,y);}
+function mileRing(n,p,rad){
+  if(!n.mileGoal)return;
+  const pr=n.mileDone?1:clamp((n.mile||0)/n.mileGoal,0,1);
+  if(pr<=0)return;
+  ctx.strokeStyle=n.mileDone?'rgba(89,217,140,.9)':'rgba(89,217,140,.7)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(p.x,p.y,rad,-Math.PI/2,-Math.PI/2+pr*TAU);ctx.stroke();
+}
+function bodyLabel(n,p,off){
+  const lp=polar(n.r()+off,n.angle);
+  label(n.name,lp.x,lp.y,'rgba(219,230,244,.85)');
+  label(n.tag+' · ×'+n.mult+(n.mileDone?' · ✓':''),lp.x,lp.y+12,'rgba(83,215,224,.45)',9);
+}
+function drawRocket(x,y,rot,s,opts={}){
+  ctx.save();ctx.translate(x,y);ctx.rotate(rot+Math.PI/2);
+  const L=30*s,Wd=7*s;
+  if(opts.thrust){const fl=(13+Math.sin(gtime*42+x)*3+rand(3))*s;
+    const g=ctx.createLinearGradient(0,L/2,0,L/2+fl);
+    g.addColorStop(0,'#fff3d6');g.addColorStop(.4,'#f5a83c');g.addColorStop(1,'rgba(255,93,93,0)');
+    ctx.fillStyle=g;ctx.beginPath();
+    ctx.moveTo(-Wd*.36,L/2);ctx.lineTo(Wd*.36,L/2);ctx.lineTo(0,L/2+fl);ctx.closePath();ctx.fill();}
+  if(opts.stack){ctx.fillStyle='#b9c4cf';
+    rr(-Wd/2-Wd*.62,-L*.32,Wd*.55,L*.72,2*s);ctx.fill();
+    rr(Wd/2+Wd*.07,-L*.32,Wd*.55,L*.72,2*s);ctx.fill();}
+  if(opts.legs){ctx.strokeStyle='#9fb4c8';ctx.lineWidth=1.4*s;
+    for(const sd of[-1,1]){ctx.beginPath();ctx.moveTo(sd*Wd*.4,L*.3);
+      ctx.lineTo(sd*Wd*1.5,L*.72);ctx.stroke();}}
+  ctx.fillStyle='#e6ecf3';rr(-Wd/2,-L/2,Wd,L,2*s);ctx.fill();
+  ctx.fillStyle='#f5a83c';ctx.fillRect(-Wd/2,-L/2+L*.16,Wd,L*.09);
+  ctx.beginPath();ctx.moveTo(-Wd/2,-L/2);ctx.lineTo(0,-L/2-7*s);ctx.lineTo(Wd/2,-L/2);ctx.closePath();
+  ctx.fillStyle='#d98f2b';ctx.fill();
+  ctx.fillStyle='#33415c';ctx.fillRect(-Wd*.42,L/2-2.6*s,Wd*.84,2.6*s);
+  ctx.restore();
+}
+function drawStage(x,y,rot,s,thrust){
+  ctx.save();ctx.translate(x,y);ctx.rotate(rot+Math.PI/2);
+  const L=15*s,Wd=6*s;
+  if(thrust){const fl=(8+rand(3))*s;
+    ctx.fillStyle='rgba(245,168,60,.85)';ctx.beginPath();
+    ctx.moveTo(-Wd*.3,L/2);ctx.lineTo(Wd*.3,L/2);ctx.lineTo(0,L/2+fl);ctx.closePath();ctx.fill();}
+  ctx.fillStyle='#e6ecf3';rr(-Wd/2,-L/2,Wd,L,2*s);ctx.fill();
+  ctx.beginPath();ctx.moveTo(-Wd/2,-L/2);ctx.lineTo(0,-L/2-5*s);ctx.lineTo(Wd/2,-L/2);ctx.closePath();
+  ctx.fillStyle='#d98f2b';ctx.fill();
+  ctx.restore();
+}
+function drawShip(p,ang,s){
+  ctx.save();ctx.translate(p.x,p.y);ctx.rotate(ang);
+  const moving=s.phase==='go'||s.phase==='back';
+  const hl=14+(techCap>=26?6:techCap>=18?4:techCap>=12?2:0);
+  if(moving){
+    ctx.fillStyle=techSpeed>1?'rgba(83,215,224,.8)':'rgba(245,168,60,.75)';
+    ctx.beginPath();
+    ctx.moveTo(-hl/2,-2);ctx.lineTo(-hl/2-4-rand(3)-(techSpeed>1?2:0),0);ctx.lineTo(-hl/2,2);
+    ctx.closePath();ctx.fill();}
+  ctx.fillStyle='#c7d3e0';ctx.fillRect(-hl/2,-2.5,hl,5);
+  ctx.fillStyle='#8fa3bd';ctx.fillRect(hl/2-2,-1.5,3,3);
+  if(s.cargo&&s.amt>0){ctx.fillStyle=(PARTS[s.cargo]||CARGO[s.cargo]).col;ctx.fillRect(-3.5,-1.5,5,3);}
+  ctx.restore();
+}
+function drawStockBars(n,p){
+  const bx=p.x-16,by=p.y+20;
+  ctx.fillStyle='rgba(16,26,46,.85)';ctx.fillRect(bx-2,by-2,36,21);
+  let i=0;
+  for(const c of['fuel','sup','mat']){
+    ctx.fillStyle='#16233c';ctx.fillRect(bx,by+i*6,32,3);
+    const w=32*clamp(n.stock[c]/n.cap,0,1);
+    if(w>0.3){ctx.fillStyle=CARGO[c].col;ctx.fillRect(bx,by+i*6,w,3);}
+    i++;}
+}
+function drawStation(n){
+  const p=nodePos(n);
+  if(n.flash>0){ctx.strokeStyle=`rgba(255,209,102,${n.flash*.8})`;ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(p.x,p.y,16+(1-n.flash)*16,0,TAU);ctx.stroke();}
+  ctx.save();ctx.translate(p.x,p.y);ctx.rotate(n.angle+Math.PI/2);
+  ctx.fillStyle='#1e5f7a';ctx.fillRect(-24,-4,14,8);ctx.fillRect(10,-4,14,8);
+  ctx.strokeStyle='rgba(83,215,224,.5)';ctx.lineWidth=.7;
+  for(let i=-22;i<=-12;i+=3){ctx.beginPath();ctx.moveTo(i,-4);ctx.lineTo(i,4);ctx.stroke();}
+  for(let i=12;i<=22;i+=3){ctx.beginPath();ctx.moveTo(i,-4);ctx.lineTo(i,4);ctx.stroke();}
+  ctx.fillStyle='#9fb4c8';rr(-9,-6,18,12,2);ctx.fill();
+  ctx.fillStyle='#33415c';ctx.fillRect(-5,-3,10,3);
+  ctx.fillStyle=Math.sin(gtime*4+n.angle*5)>0?'#59d98c':'#2a5c42';ctx.fillRect(-1,-9,2,3);
+  ctx.restore();
+  const lp=polar(n.r()+24,n.angle);
+  label(n.name,lp.x,lp.y,'rgba(219,230,244,.8)');
+  label(n.tag+(n.mult>1?' · ×'+n.mult:''),lp.x,lp.y+12,'rgba(83,215,224,.45)',9);
+}
+function drawDepot(n){
+  const p=nodePos(n);
+  ctx.save();ctx.translate(p.x,p.y);ctx.rotate(n.angle+Math.PI/2);
+  ctx.fillStyle='#2c3c58';ctx.fillRect(-17,-2,34,4);
+  ctx.fillStyle='#1e5f7a';ctx.fillRect(-25,-3,7,6);ctx.fillRect(18,-3,7,6);
+  for(const dx of[-10,4]){ctx.fillStyle='#9fc3d8';rr(dx,-8,7,16,3);ctx.fill();
+    ctx.strokeStyle='rgba(83,215,224,.55)';ctx.lineWidth=.8;ctx.strokeRect(dx,-8,7,16);}
+  ctx.fillStyle=Math.sin(gtime*3)>0?'#53d7e0':'#1e5f7a';ctx.fillRect(-1,-11,2,3);
+  ctx.restore();
+  const lp=polar(n.r()+20,n.angle);
+  label(n.name,lp.x,lp.y,'rgba(219,230,244,.8)');
+  label(n.tag,lp.x,lp.y+12,'rgba(83,215,224,.45)',9);
+}
+function drawDock(n){
+  const p=nodePos(n);
+  ctx.save();ctx.translate(p.x,p.y);ctx.rotate(n.angle+Math.PI/2);
+  ctx.fillStyle='#3c4d68';ctx.fillRect(-16,0,32,6);
+  ctx.strokeStyle='#8fa3bd';ctx.lineWidth=1.4;
+  ctx.beginPath();ctx.moveTo(-12,0);ctx.lineTo(-12,-16);ctx.lineTo(2,-16);ctx.stroke();
+  let bx=-8;
+  for(const c of['sup','mat','fuel']){if(n.stock[c]>2&&bx<10){
+    ctx.fillStyle=CARGO[c].col;ctx.fillRect(bx,-6,6,6);bx+=8;}}
+  ctx.restore();
+  label(n.name,polar(RE+2,n.angle-0.22).x,polar(RE+2,n.angle-0.22).y+26,'rgba(219,230,244,.7)',10);
+}
+function drawFactory(n){
+  const p=nodePos(n),pc=PARTS[n.makes].col;
+  ctx.save();ctx.translate(p.x,p.y);ctx.rotate(n.angle+Math.PI/2);
+  ctx.fillStyle='#2c3c58';ctx.fillRect(-14,0,28,5);
+  ctx.fillStyle='#3c4d68';ctx.fillRect(-12,-12,16,12);
+  ctx.strokeStyle='#8fa3bd';ctx.lineWidth=1;ctx.strokeRect(-12,-12,16,12);
+  ctx.fillStyle='#2c3c58';ctx.fillRect(6,-18,4,18);
+  ctx.fillStyle=pc;ctx.globalAlpha=.5+.5*Math.sin(gtime*4+n.angle*3);
+  ctx.fillRect(-9,-9,4,4);ctx.globalAlpha=1;
+  const shown=Math.min(3,Math.floor(n.fstock));
+  for(let i=0;i<shown;i++){ctx.fillStyle=pc;ctx.fillRect(-12+i*6,2,4,4);}
+  ctx.restore();
+  const lp=polar(n.r()+18,n.angle);
+  label(n.name,lp.x,lp.y,'rgba(219,230,244,.8)',10);
+  label('产出 '+PARTS[n.makes].name+' '+shown+'/3',lp.x,lp.y+12,'rgba(219,230,244,.4)',9);
+}
+function drawMoon(n){
+  const p=nodePos(n);
+  ctx.save();ctx.translate(p.x,p.y);
+  const g=ctx.createRadialGradient(-3,-3,1,0,0,10);
+  g.addColorStop(0,'#c8ccd4');g.addColorStop(1,'#7a8090');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,10,0,TAU);ctx.fill();
+  ctx.fillStyle='rgba(90,96,110,.6)';
+  ctx.beginPath();ctx.arc(-3,2,2.2,0,TAU);ctx.fill();
+  ctx.beginPath();ctx.arc(4,-2,1.6,0,TAU);ctx.fill();
+  ctx.fillStyle=Math.sin(gtime*4)>0?'#59d98c':'#2a5c42';ctx.fillRect(-1,-14,2,3);
+  ctx.restore();bodyLabel(n,p,22);
+}
+function drawMars(n){
+  const p=nodePos(n);
+  ctx.save();ctx.translate(p.x,p.y);
+  const g=ctx.createRadialGradient(-4,-4,1,0,0,13);
+  g.addColorStop(0,'#e08a5a');g.addColorStop(1,'#8c3f26');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,13,0,TAU);ctx.fill();
+  ctx.fillStyle='rgba(120,50,30,.5)';
+  ctx.beginPath();ctx.ellipse(2,3,5,2.5,.6,0,TAU);ctx.fill();
+  ctx.fillStyle=Math.sin(gtime*4)>0?'#59d98c':'#2a5c42';ctx.fillRect(-1,-18,2,3);
+  ctx.restore();
+  mileRing(n,p,18);bodyLabel(n,p,24);
+  const w=windowInfo();
+  const lp=polar(n.r()+24,n.angle);
+  label(w.open?'发射窗口 开启 '+fmtT(w.left):'发射窗口 关闭 '+fmtT(w.left),
+    lp.x,lp.y+24,w.open?'rgba(89,217,140,.9)':'rgba(255,93,93,.7)',9);
+}
+function drawVenus(n){
+  const p=nodePos(n);
+  ctx.save();ctx.translate(p.x,p.y);
+  const g=ctx.createRadialGradient(-3,-3,1,0,0,11);
+  g.addColorStop(0,'#f0d9a0');g.addColorStop(1,'#b98a4a');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,11,0,TAU);ctx.fill();
+  ctx.strokeStyle='rgba(160,110,50,.5)';ctx.lineWidth=1.4;
+  ctx.beginPath();ctx.ellipse(0,-3,9,2.4,0,0,TAU);ctx.stroke();
+  ctx.beginPath();ctx.ellipse(0,3,8,2,-0.2,0,TAU);ctx.stroke();
+  ctx.fillStyle=Math.sin(gtime*4)>0?'#59d98c':'#2a5c42';ctx.fillRect(-1,-15,2,3);
+  ctx.restore();mileRing(n,p,16);bodyLabel(n,p,22);
+}
+function drawCeres(n){
+  const p=nodePos(n);
+  ctx.save();ctx.translate(p.x,p.y);
+  const g=ctx.createRadialGradient(-3,-3,1,0,0,9);
+  g.addColorStop(0,'#a89a86');g.addColorStop(1,'#5c5142');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,9,0,TAU);ctx.fill();
+  ctx.strokeStyle='#8fa3bd';ctx.lineWidth=1.2;
+  ctx.beginPath();ctx.moveTo(4,-8);ctx.lineTo(9,-14);ctx.stroke();
+  ctx.fillStyle=Math.sin(gtime*5)>0?'#f5a83c':'#7a5a24';ctx.fillRect(8,-16,2,2);
+  ctx.fillStyle='#d9a441';ctx.fillRect(-6,1,2,2);ctx.fillRect(-1,4,2,2);
+  ctx.restore();mileRing(n,p,14);bodyLabel(n,p,20);
+}
+function drawEuropa(n){
+  const p=nodePos(n);
+  ctx.save();ctx.translate(p.x,p.y);
+  const g=ctx.createRadialGradient(-3,-3,1,0,0,10);
+  g.addColorStop(0,'#ffffff');g.addColorStop(1,'#9db4c8');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,10,0,TAU);ctx.fill();
+  ctx.strokeStyle='rgba(150,90,60,.55)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(-8,-3);ctx.quadraticCurveTo(0,1,8,-2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-6,4);ctx.quadraticCurveTo(1,6,7,3);ctx.stroke();
+  ctx.fillStyle=Math.sin(gtime*4)>0?'#59d98c':'#2a5c42';ctx.fillRect(-1,-14,2,3);
+  ctx.restore();mileRing(n,p,15);bodyLabel(n,p,22);
+}
+function drawIo(n){
+  const p=nodePos(n);
+  ctx.save();ctx.translate(p.x,p.y);
+  const g=ctx.createRadialGradient(-3,-3,1,0,0,10);
+  g.addColorStop(0,'#f2d06b');g.addColorStop(1,'#b07a2a');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,10,0,TAU);ctx.fill();
+  ctx.fillStyle='rgba(200,90,30,.7)';
+  ctx.beginPath();ctx.arc(-3,1,2,0,TAU);ctx.fill();
+  ctx.beginPath();ctx.arc(4,-3,1.5,0,TAU);ctx.fill();
+  ctx.fillStyle=`rgba(255,122,92,${.4+.4*Math.sin(gtime*6)})`;
+  ctx.beginPath();ctx.arc(-3,1,3,0,TAU);ctx.fill();
+  ctx.restore();mileRing(n,p,15);bodyLabel(n,p,22);
+}
+function drawTitan(n){
+  const p=nodePos(n);
+  ctx.save();ctx.translate(p.x,p.y);
+  ctx.strokeStyle='rgba(240,160,80,.35)';ctx.lineWidth=3;
+  ctx.beginPath();ctx.arc(0,0,12,0,TAU);ctx.stroke();
+  const g=ctx.createRadialGradient(-3,-3,1,0,0,10);
+  g.addColorStop(0,'#e8a35c');g.addColorStop(1,'#9c5a20');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,10,0,TAU);ctx.fill();
+  ctx.fillStyle='rgba(60,30,10,.4)';
+  ctx.beginPath();ctx.ellipse(0,4,7,2.5,0,0,TAU);ctx.fill();
+  ctx.fillStyle=Math.sin(gtime*4)>0?'#59d98c':'#2a5c42';ctx.fillRect(-1,-15,2,3);
+  ctx.restore();mileRing(n,p,16);bodyLabel(n,p,22);
+}
+function drawTriton(n){
+  const p=nodePos(n);
+  ctx.save();ctx.translate(p.x,p.y);
+  const g=ctx.createRadialGradient(-3,-3,1,0,0,10);
+  g.addColorStop(0,'#eaf6f8');g.addColorStop(1,'#7fa8b8');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,10,0,TAU);ctx.fill();
+  ctx.fillStyle='rgba(240,170,190,.5)';
+  ctx.beginPath();ctx.ellipse(-2,3,5,2,0.4,0,TAU);ctx.fill();
+  ctx.strokeStyle='rgba(140,200,220,.6)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,-10);ctx.lineTo(2,-15);ctx.stroke();
+  ctx.restore();mileRing(n,p,15);bodyLabel(n,p,22);
+}
+function drawKuiper(n){
+  const p=nodePos(n);
+  ctx.save();ctx.translate(p.x,p.y);
+  const g=ctx.createRadialGradient(-3,-3,1,0,0,9);
+  g.addColorStop(0,'#5a7186');g.addColorStop(1,'#242f3d');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,9,0,TAU);ctx.fill();
+  ctx.fillStyle=`rgba(190,235,255,${.4+.5*Math.abs(Math.sin(gtime*3))})`;
+  ctx.fillRect(-5,-4,1.5,1.5);ctx.fillRect(3,2,1.5,1.5);ctx.fillRect(0,-6,1.5,1.5);
+  ctx.fillStyle=Math.sin(gtime*4)>0?'#59d98c':'#2a5c42';ctx.fillRect(-1,-13,2,3);
+  ctx.restore();mileRing(n,p,14);bodyLabel(n,p,20);
+}
+function drawLocked(n){
+  const p=nodePos(n);
+  ctx.setLineDash([3,4]);ctx.strokeStyle='rgba(125,143,169,.4)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(p.x,p.y,14,0,TAU);ctx.stroke();ctx.setLineDash([]);
+  label(n.name,p.x,p.y-24,'rgba(125,143,169,.55)',10);
+  label(fmtM(n.cost||0)+' 解锁',p.x,p.y+26,'rgba(125,143,169,.4)',9);
+}
+function drawPad(){
+  const p=polar(RE,PAD_A);
+  ctx.save();ctx.translate(p.x,p.y);ctx.rotate(PAD_A+Math.PI/2);
+  ctx.strokeStyle='#8fa3bd';ctx.lineWidth=1.6;
+  ctx.strokeRect(-8,-26,4,26);ctx.strokeRect(4,-26,4,26);
+  for(let yy=-22;yy<0;yy+=6){ctx.beginPath();ctx.moveTo(-8,yy);ctx.lineTo(8,yy+4);ctx.stroke();}
+  ctx.fillStyle=Math.sin(gtime*6)>0?'#f5a83c':'#7a5a24';ctx.fillRect(-1.5,-30,3,3);
+  ctx.strokeStyle='#6c81a0';ctx.lineWidth=1.4;
+  ctx.strokeRect(14,-40,7,40);
+  for(let yy=-36;yy<0;yy+=7){ctx.beginPath();ctx.moveTo(14,yy);ctx.lineTo(21,yy+4);ctx.stroke();}
+  ctx.restore();
+  for(let i=0;i<pad.queue.length;i++){
+    const qp=polar(RE+2,PAD_A+0.26+i*0.16);
+    ctx.save();ctx.translate(qp.x,qp.y);ctx.rotate(PAD_A+0.26+i*0.16+Math.PI/2);
+    ctx.globalAlpha=.5;
+    ctx.fillStyle='#9fb4c8';rr(-2.5,-11,5,22,1.5);ctx.fill();
+    ctx.beginPath();ctx.moveTo(-2.5,-11);ctx.lineTo(0,-15);ctx.lineTo(2.5,-11);ctx.closePath();ctx.fill();
+    ctx.globalAlpha=1;ctx.restore();}
+  if(pad.asm){
+    const t=pad.asm.t/CFG.asmDur;
+    const ap=polar(RE+4,PAD_A+0.13);
+    ctx.save();ctx.translate(ap.x,ap.y);ctx.rotate(PAD_A+0.13+Math.PI/2);
+    const s=RE/120,Wd=7*s,L=30*s;
+    const tankH=clamp(t/0.4,0,1)*L*0.62;
+    if(tankH>0){ctx.fillStyle='#e6ecf3';ctx.fillRect(-Wd/2,L/2-tankH,Wd,tankH);
+      ctx.fillStyle='#d9a441';ctx.fillRect(-Wd/2,L/2-tankH,Wd,2);}
+    if(t>0.4){ctx.fillStyle='#33415c';ctx.fillRect(-Wd*.42,L/2-2.6*s,Wd*.84,2.6*s);
+      if(t<0.55){ctx.fillStyle='rgba(245,168,60,.7)';
+        ctx.beginPath();ctx.arc(0,L/2+3,4*s*(0.55-t)/0.15,0,TAU);ctx.fill();}}
+    if(t>0.55){const noseH=clamp((t-0.55)/0.3,0,1);
+      ctx.fillStyle='#e6ecf3';ctx.fillRect(-Wd/2,L/2-tankH-noseH*L*0.28,Wd,noseH*L*0.28);
+      if(t>0.85){ctx.fillStyle='#d98f2b';ctx.beginPath();
+        ctx.moveTo(-Wd/2,L/2-L*0.9);ctx.lineTo(0,L/2-L*0.9-6*s);ctx.lineTo(Wd/2,L/2-L*0.9);ctx.closePath();ctx.fill();}}
+    const isReused=pad.asm.booster&&pad.asm.booster.flights>0;
+    if(isReused&&t>0.4){ctx.strokeStyle='#59d98c';ctx.lineWidth=1;
+      ctx.strokeRect(-Wd/2-1.5,L/2-tankH,Wd+3,tankH);}
+    ctx.restore();
+  }
+  label('发射场 · 总装',polar(RE+30,PAD_A+0.28).x,polar(RE+30,PAD_A+0.28).y,'rgba(219,230,244,.6)',10);
+}
+
+function render(now){
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  for(const s of stars){
+    ctx.globalAlpha=.25+.55*Math.abs(Math.sin(now*.001+s.ph));
+    ctx.fillStyle='#cfe3f5';ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,TAU);ctx.fill();}
+  ctx.globalAlpha=1;
+  ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  ctx.translate(W/2+cam.ox,H/2+cam.oy);ctx.scale(cam.z,cam.z);ctx.translate(-W/2,-H/2);
+  if(slowmo>0){
+    const z=1+0.65*Math.sin(Math.PI*clamp(1-slowmo/cineT,0,1));
+    const lz=polar(RE+8,LZ_A);
+    ctx.translate(lz.x,lz.y);ctx.scale(z,z);ctx.translate(-lz.x,-lz.y);
+  }
+
+  ctx.save();
+  const eg=ctx.createRadialGradient(CX-RE*.3,CY-RE*.3,RE*.1,CX,CY,RE);
+  eg.addColorStop(0,'#1d4a6b');eg.addColorStop(.7,'#123252');eg.addColorStop(1,'#0c2038');
+  ctx.fillStyle=eg;ctx.beginPath();ctx.arc(CX,CY,RE,0,TAU);ctx.fill();
+  ctx.clip();ctx.translate(CX,CY);ctx.rotate(gtime*.02);
+  ctx.fillStyle='rgba(46,107,82,.85)';
+  for(const[bx,by,rx,ry]of[[.3,-.2,.42,.26],[-.42,.25,.3,.2],[.1,.55,.26,.16],[-.15,-.6,.2,.13]]){
+    ctx.beginPath();ctx.ellipse(bx*RE,by*RE,rx*RE,ry*RE,bx*3,0,TAU);ctx.fill();}
+  ctx.restore();
+  ctx.strokeStyle='rgba(120,200,255,.28)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(CX,CY,RE+2.5,0,TAU);ctx.stroke();
+
+  if(stormLeft>0){
+    ctx.fillStyle=`rgba(245,168,60,${0.035+0.025*Math.sin(gtime*9)})`;
+    ctx.fillRect(CX-RE*9,CY-RE*9,RE*18,RE*18);
+    ctx.strokeStyle=`rgba(245,168,60,${0.25+0.15*Math.sin(gtime*7)})`;ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(CX,CY,RE*1.25,gtime*1.5,gtime*1.5+2.2);ctx.stroke();
+    ctx.beginPath();ctx.arc(CX,CY,RE*1.45,-gtime*1.2,-gtime*1.2+1.8);ctx.stroke();
+  }
+
+  if(ctx.createConicGradient){const sw=gtime*.12%TAU;
+    try{const cg=ctx.createConicGradient(sw,CX,CY);
+      cg.addColorStop(0,'rgba(83,215,224,.07)');cg.addColorStop(.09,'rgba(83,215,224,0)');cg.addColorStop(1,'rgba(83,215,224,0)');
+      ctx.fillStyle=cg;ctx.beginPath();ctx.arc(CX,CY,RE*8.6,0,TAU);ctx.fill();}catch(e){}}
+
+  const rings=[[R1,'LEO-1'],[R2,'LEO-2']];
+  if(prog.moon)rings.push([RE*3.1,'LUNAR']);
+  if(prog.venus)rings.push([RE*3.55,'VENUS']);
+  if(prog.mars)rings.push([RE*4.0,'MARS']);
+  if(prog.ceres)rings.push([RE*4.8,'BELT']);
+  if(prog.europa)rings.push([RE*5.6,'JOVIAN']);
+  if(prog.io)rings.push([RE*6.0,'IO']);
+  if(prog.titan)rings.push([RE*6.8,'TITAN']);
+  if(prog.triton)rings.push([RE*7.6,'TRITON']);
+  if(prog.kuiper)rings.push([RE*8.4,'KUIPER']);
+  for(const[R,tag]of rings){
+    ctx.strokeStyle='rgba(83,215,224,.14)';ctx.lineWidth=1.4;
+    ctx.beginPath();ctx.arc(CX,CY,R,0,TAU);ctx.stroke();
+    ctx.fillStyle='rgba(83,215,224,.45)';
+    for(let a=0;a<TAU;a+=TAU/24){const p=polar(R,a);ctx.fillRect(p.x-1,p.y-1,2,2);}
+    label(tag,CX,CY-R-8,'rgba(83,215,224,.35)',9);}
+  ctx.setLineDash([2,6]);ctx.strokeStyle='rgba(83,215,224,.09)';
+  ctx.beginPath();ctx.arc(CX,CY,RE*2.24,0,TAU);ctx.stroke();ctx.setLineDash([]);
+
+  ctx.setLineDash([3,7]);ctx.strokeStyle='rgba(245,168,60,.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(CX,CY,RE*1.12,0,TAU);ctx.stroke();ctx.setLineDash([]);
+
+  const wInfo=windowInfo();
+  for(const r of routes){
+    const ground=isSurface(r.a)&&isSurface(r.b);
+    const marsR=isMarsRoute(r);
+    ctx.save();ctx.setLineDash([5,7]);ctx.lineDashOffset=-gtime*16;
+    ctx.strokeStyle=r.blocked>0?`rgba(255,93,93,${.5+.3*Math.sin(gtime*8)})`:
+      ground?'rgba(217,164,65,.45)':
+      marsR?(wInfo.open?'rgba(89,217,140,.5)':'rgba(255,93,93,.35)'):'rgba(83,215,224,.4)';
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    for(let i=0;i<r.path.pts.length;i++){const p=r.path.pts[i];i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y);}
+    ctx.stroke();ctx.restore();
+  }
+
+  drawPad();
+  {const p=polar(RE+2,LZ_A);ctx.save();ctx.translate(p.x,p.y);ctx.rotate(LZ_A+Math.PI/2);
+   ctx.fillStyle='#3c4d68';ctx.fillRect(-14,0,28,5);
+   ctx.setLineDash([2,3]);ctx.strokeStyle='rgba(89,217,140,.5)';
+   ctx.beginPath();ctx.arc(0,-2,11,0,TAU);ctx.stroke();ctx.setLineDash([]);
+   ctx.strokeStyle='rgba(89,217,140,.7)';ctx.lineWidth=1.2;
+   ctx.beginPath();ctx.moveTo(-5,-7);ctx.lineTo(5,3);ctx.moveTo(5,-7);ctx.lineTo(-5,3);ctx.stroke();
+   ctx.restore();label('回收区',polar(RE+26,LZ_A+0.22).x,polar(RE+26,LZ_A+0.22).y,'rgba(89,217,140,.6)',10);}
+
+  for(const n of nodes){
+    if(n.locked){drawLocked(n);continue;}
+    if(n.type==='station')drawStation(n);
+    else if(n.type==='depot')drawDepot(n);
+    else if(n.type==='factory')drawFactory(n);
+    else if(n.type==='dock'||n.type==='surface')drawDock(n);
+    else if(n.type==='moon')drawMoon(n);
+    else if(n.type==='mars')drawMars(n);
+    else if(n.type==='venus')drawVenus(n);
+    else if(n.type==='ceres')drawCeres(n);
+    else if(n.type==='europa')drawEuropa(n);
+    else if(n.type==='io')drawIo(n);
+    else if(n.type==='titan')drawTitan(n);
+    else if(n.type==='triton')drawTriton(n);
+    else if(n.type==='kuiper')drawKuiper(n);
+    if(!['factory','pad'].includes(n.type))drawStockBars(n,nodePos(n));
+    if(Object.keys(n.cons).length&&stockTotal(n)<6){
+      const p=nodePos(n),a=.5+.5*Math.sin(gtime*5);
+      ctx.fillStyle=`rgba(255,93,93,${a})`;
+      ctx.beginPath();ctx.arc(p.x,p.y-18,3,0,TAU);ctx.fill();}
+    for(const c of contracts){if(c.station===n&&(c.state==='open'||c.state==='flying')){
+      const ip=polar(n.r()-20,n.angle);
+      ctx.fillStyle='rgba(245,168,60,.9)';ctx.fillRect(ip.x-4,ip.y-4,8,8);
+      label(c.tons+'t',ip.x,ip.y+16,'rgba(245,168,60,.8)',9);}}
+  }
+
+  if(mode==='route'){
+    for(const n of nodes){if(n.locked)continue;const p=nodePos(n);
+      const hot=mouse.over===n||routeSel===n;
+      ctx.strokeStyle=routeSel===n?'rgba(245,168,60,.9)':'rgba(83,215,224,'+(hot?.8:.3)+')';
+      ctx.lineWidth=hot?1.6:1;
+      ctx.beginPath();ctx.arc(p.x,p.y,18+Math.sin(gtime*4)*2,0,TAU);ctx.stroke();}
+    if(routeSel&&mouse.over&&mouse.over!==routeSel){
+      const a=nodePos(routeSel),b=nodePos(mouse.over);
+      ctx.setLineDash([4,5]);ctx.strokeStyle='rgba(89,217,140,.7)';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([]);}
+    else if(routeSel&&mouse.wx>-900){
+      const a=nodePos(routeSel);
+      ctx.setLineDash([4,5]);ctx.strokeStyle='rgba(83,215,224,.35)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(mouse.wx,mouse.wy);ctx.stroke();ctx.setLineDash([]);}
+  }
+
+  for(const r of routes)for(const s of r.ships){
+    const p=pointAt(r.path,s.d);
+    let ang=tangentAt(r.path,s.d);
+    if(s.phase==='back')ang+=Math.PI;
+    if(s.phase==='load')ang=tangentAt(r.path,2)+Math.PI;
+    drawShip(p,ang,s);
+    if(r.blocked>0){
+      ctx.fillStyle=`rgba(255,93,93,${.5+.5*Math.sin(gtime*8)})`;
+      ctx.font='700 10px Orbitron';ctx.textAlign='center';
+      ctx.fillText('!',p.x,p.y-9);}
+  }
+
+  if(flight){const f=flight,g=f.geom;
+    if(f.phase==='countdown'){
+      ctx.setLineDash([2,5]);ctx.strokeStyle='rgba(245,168,60,.25)';
+      ctx.beginPath();for(let i=0;i<=24;i++){const p=qbez(g.p0,g.p1,g.p2,i/24);
+        i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y);}
+      ctx.stroke();ctx.setLineDash([]);
+      drawRocket(polar(RE+16,PAD_A).x,polar(RE+16,PAD_A).y,PAD_A,RE/120,{stack:true});}
+    else if(f.phase==='ascent'){
+      const k=Math.pow(f.t/CFG.ascentDur,1.35),pos=qbez(g.p0,g.p1,g.p2,k),d=qbezD(g.p0,g.p1,g.p2,k);
+      drawRocket(pos.x,pos.y,Math.atan2(d.y,d.x),RE/120,{stack:true,thrust:true});}
+    else if(f.phase==='transfer'){
+      ctx.setLineDash([2,5]);ctx.strokeStyle='rgba(83,215,224,.35)';
+      ctx.beginPath();
+      for(let i=0;i<=24;i++){const a=g.iA+g.arc*i/24,p=polar(g.R,a);
+        i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y);}
+      ctx.stroke();ctx.setLineDash([]);
+      const ang=g.iA+g.arc*(f.t/CFG.transferDur),pos=polar(g.R,ang);
+      drawStage(pos.x,pos.y,ang+(g.arc>0?Math.PI/2:-Math.PI/2),RE/120,true);}
+    else if(f.phase==='dock'){
+      const sp=polar(g.R,g.stA);
+      drawStage(sp.x+12,sp.y,g.stA+(g.arc>0?Math.PI/2:-Math.PI/2),RE/120,false);
+      if(f.t<1.1){const k=f.t/1.1;
+        ctx.fillStyle='#f5a83c';
+        ctx.fillRect(lerp(sp.x+8,sp.x-4,k)-3,sp.y-3,6,6);}}
+  }
+
+  for(const r of returns){
+    const s=RE/120*.8;
+    if(r.state==='landed'){drawRocket(r.L.x,r.L.y,LZ_A,s,{legs:true});continue;}
+    const k=clamp(r.t/r.dur,0,1),pos=qbez(r.S,r.ctrl,r.L,k*k*(3-2*k));
+    const d=qbezD(r.S,r.ctrl,r.L,Math.max(.01,Math.min(.99,k)));
+    const va=Math.atan2(d.y,d.x);let rot;
+    if(k<.2)rot=va-Math.PI*.9;
+    else if(k<.35)rot=lerp(va-Math.PI*.9,va+Math.PI/2,(k-.2)/.15);
+    else rot=va+Math.PI/2;
+    drawRocket(pos.x,pos.y,rot,s,{legs:k>.86,thrust:(k>=.2&&k<.35)||k>=.8});}
+
+  for(const p of parts){const a=clamp(p.life/p.max,0,1);
+    if(p.col==='smoke'){ctx.fillStyle=`rgba(160,170,185,${a*.28})`;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.size*(2-a),0,TAU);ctx.fill();}
+    else if(p.col==='spark'){ctx.fillStyle=`rgba(245,168,60,${a})`;
+      ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);}
+    else if(p.col==='ring'){ctx.strokeStyle=`rgba(190,235,255,${a*.55})`;ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,TAU);ctx.stroke();}
+    else if(p.col==='meteor'){
+      ctx.strokeStyle=`rgba(255,210,150,${a*.8})`;ctx.lineWidth=p.size;
+      ctx.beginPath();ctx.moveTo(p.x,p.y);
+      ctx.lineTo(p.x-p.vx*0.12,p.y-p.vy*0.12);ctx.stroke();}
+    else{ctx.globalAlpha=a;ctx.fillStyle=p.col;
+      ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);ctx.globalAlpha=1;}}
+
+  for(const f of floats){ctx.globalAlpha=clamp(f.life,0,1);
+    ctx.font='700 14px Orbitron';ctx.fillStyle=f.col;ctx.textAlign='center';
+    ctx.fillText(f.text,f.x,f.y);ctx.globalAlpha=1;}
+}
+
+const tipEl=document.getElementById('tip');
+function tipHTML(n){
+  const L=[`<b>${n.name}</b><i>${n.tag}</i>`];
+  if(n.locked){L.push(`未解锁 · ${n.plan} ${fmtM(n.cost)}`);
+    if(n.req)L.push(`前置: ${node(n.req).name}`);
+    return L.join('<br>');}
+  if(Object.keys(n.prod).length)
+    L.push(`<span class="tp">产出</span> ${Object.entries(n.prod).map(([c,r])=>`${CARGO[c].name} +${r}t/s`).join(' · ')}`);
+  if(n.type==='factory')
+    L.push(`<span class="tp">产出</span> ${PARTS[n.makes].name}件 ${Math.floor(n.fstock)}/3 在库`);
+  if(Object.keys(n.cons).length)
+    L.push(`<span class="tc">消耗</span> ${Object.entries(n.cons).map(([c,r])=>`${CARGO[c].name} -${r}t/s`).join(' · ')}`);
+  if(n.cap)L.push(`<span class="tm">库存</span> ${stockTotal(n).toFixed(0)} / ${n.cap}t`);
+  if(n.type==='pad')L.push(`<span class="tm">零件</span> 罐${Math.floor(pad.stock.tank)} 动${Math.floor(pad.stock.eng)} 航${Math.floor(pad.stock.avi)} · 待命火箭 ${pad.queue.length}`);
+  if(n.mult>1)L.push(`<span class="tg">运价 ×${n.mult}</span>`);
+  if(n.mileGoal)L.push(`里程碑 ${n.mileDone?'✓ 达成':Math.floor(n.mile||0)+'/'+n.mileGoal+'t'} · 奖金 ${fmtM(n.mileReward)}`);
+  if(n.type==='mars')L.push(`殖民 ${prog.colonyDone?'✓ 建成':Math.floor(prog.colony)+'/'+CFG.colonyGoal+'t'}`);
+  return L.join('<br>');
+}
+function updTip(){
+  const n=mouse.over;
+  if(n&&!(panDrag&&panDrag.moved)){
+    tipEl.innerHTML=tipHTML(n);
+    tipEl.classList.add('show');
+    const tw=240,th=tipEl.offsetHeight||90;
+    let x=mouse.x+18,y=mouse.y+16;
+    if(x+tw>W-8)x=mouse.x-tw-12;
+    if(y+th>H-8)y=H-th-8;
+    tipEl.style.left=x+'px';tipEl.style.top=y+'px';
+  }else tipEl.classList.remove('show');
+}
+
+/* ── UI ── */
+const cardsEl=document.getElementById('cards');
+const cardEls=new Map();let lastConVer=-1;
+function makeCard(c){
+  const el=document.createElement('div');el.className='card'+(c.urgent?' urgent':'');
+  el.innerHTML=`<div class="cn"><span>${c.name}</span><span class="rw">${fmtM(c.reward)}</span></div>
+    <div class="cm">→ ${c.station.name} · ${c.tons}.0t</div>
+    <div class="cbar"><i></i></div><div class="ctm"></div>`;
+  el.addEventListener('click',()=>{if(c.state!=='open')return;
+    selected=c;SFX.tick();syncCards();});
+  cardsEl.appendChild(el);
+  cardEls.set(c,{el,bar:el.querySelector('.cbar i'),tm:el.querySelector('.ctm')});
+}
+function refreshCards(){
+  for(const[c,r]of[...cardEls]){if(!contracts.includes(c)){r.el.remove();cardEls.delete(c);}}
+  for(const c of contracts){if(!cardEls.has(c))makeCard(c);}
+  syncCards();
+}
+function syncCards(){
+  for(const c of contracts){const r=cardEls.get(c);if(!r)continue;
+    r.el.classList.toggle('sel',selected===c&&c.state==='open');
+    r.el.classList.toggle('lock',c.state!=='open');
+    r.el.classList.toggle('done',c.state==='done');
+    r.el.classList.toggle('failed',c.state==='failed');
+    r.el.dataset.stamp=c.state==='done'?'已交付':c.state==='failed'?'已失效':'';}
+}
+function buildRouteRows(){
+  const list=document.getElementById('routeList');list.innerHTML='';routeRows.length=0;
+  for(const r of routes){
+    const ground=isSurface(r.a)&&isSurface(r.b);
+    const marsR=isMarsRoute(r);
+    const el=document.createElement('div');el.className='rrow';
+    el.innerHTML=`<div class="rt">${r.a.name} → ${r.b.name}${ground?'<span class="gnd">地面线</span>':''}${marsR?'<span class="marsb">窗口线</span>':''}</div>
+      <div class="rs"></div>
+      <div class="rbtns"><button class="rbtn add">＋货船 ${fmtM(CFG.shipCost)}</button><button class="rbtn del">拆除</button></div>`;
+    const add=el.querySelector('.add'),del=el.querySelector('.del');
+    add.addEventListener('click',()=>addShip(r));
+    del.addEventListener('click',()=>delRoute(r));
+    list.appendChild(el);
+    routeRows.push({r,el,stat:el.querySelector('.rs'),add});}
+}
+const wallRefs=new Map();let wallVer=-1;
+function buildWall(){
+  const w=document.getElementById('wall');w.innerHTML='';wallRefs.clear();
+  for(const b of boosters){
+    const el=document.createElement('div');el.className='bst';
+    el.innerHTML=`<span class="nm">${b.name}</span><span class="fl">✈×${b.flights}</span><span class="stt"></span><div class="refbar" style="display:none"><i></i></div>`;
+    w.appendChild(el);
+    wallRefs.set(b,{stt:el.querySelector('.stt'),rb:el.querySelector('.refbar'),ri:el.querySelector('.refbar i')});}
+}
+const mileRefs=[];let mileKey='';
+function buildMiles(){
+  const box=document.getElementById('mileBars');box.innerHTML='';mileRefs.length=0;
+  const list=nodes.filter(n=>!n.locked&&n.mileGoal);
+  if(prog.mars)list.unshift(node('mars'));
+  for(const n of list){
+    const el=document.createElement('div');el.className='mrow';
+    el.innerHTML=`<span>${n.name}</span><div class="mbar"><i></i></div><b></b>`;
+    box.appendChild(el);
+    mileRefs.push({n,bar:el.querySelector('.mbar i'),txt:el.querySelector('b')});}
+}
+const xBtnEls={};
+function buildExpand(){
+  const box=document.getElementById('xList');
+  for(const id of UNLOCK_ORDER){const n=node(id);
+    const el=document.createElement('button');el.className='xbtn';
+    el.innerHTML=`<b>${n.plan} <em>${fmtM(n.cost)}</em></b><small>${n.desc}</small>`;
+    el.addEventListener('click',()=>buyNode(id));
+    box.appendChild(el);xBtnEls[id]=el;}
+}
+const techBtnEls={};
+function buildTech(){
+  const cols=document.getElementById('techCols');cols.innerHTML='';
+  const mk=(br,title)=>{
+    const col=document.createElement('div');col.className='tcol';
+    col.innerHTML=`<div class="ph">${title}</div>`;
+    for(const id in TECHS){const t=TECHS[id];if(t.br!==br)continue;
+      const el=document.createElement('button');el.className='xbtn';
+      el.innerHTML=`<b>${t.name} <em>${fmtM(t.cost)}</em></b><small>${t.desc}${t.req?' · 需 '+TECHS[t.req].name:''}</small>`;
+      el.addEventListener('click',()=>buyTech(id));
+      col.appendChild(el);techBtnEls[id]=el;}
+    cols.appendChild(col);};
+  mk('cap','舱容工程 CARGO');
+  mk('spd','推进工程 THRUST');
+}
+function creAct(fn){
+  if(!creator){SFX.deny();toast('请先开启创造者模式');return;}
+  fn();SFX.tick();
+}
+let lastMoney=-1,lastClock='',lastRoutesVer=-1;
+function ui(){
+  if(money!==lastMoney){const el=document.getElementById('moneyVal');
+    el.textContent=creator?'∞':fmtM(money);
+    el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');lastMoney=money;}
+  const ck='T+'+fmtT(gtime);if(ck!==lastClock){document.getElementById('clock').textContent=ck;lastClock=ck;}
+  if(lastConVer!==contractsVer){lastConVer=contractsVer;refreshCards();}
+  const openN=contracts.filter(c=>c.state==='open').length;
+  document.getElementById('conStat').textContent=`待办 ${openN} · 已完成 ${stats.contractsDone}`;
+  /* 声望条 */
+  const lv=repLevel();const li=REPS.indexOf(lv);const nxt=REPS[li+1];
+  document.getElementById('repLv').textContent=`LV${lv.lv} · ${lv.name}`;
+  document.getElementById('repNext').textContent=nxt?`${Math.floor(rep-lv.at)}/${nxt.at-lv.at}`:'MAX';
+  document.getElementById('repBarI').style.width=nxt?clamp((rep-lv.at)/(nxt.at-lv.at)*100,0,100)+'%':'100%';
+  for(const c of contracts){const r=cardEls.get(c);if(!r)continue;
+    if(c.state==='open'){
+      const pct=clamp(c.deadline/c._d0*100,0,100);
+      r.bar.style.width=pct+'%';r.tm.textContent='剩余 '+fmtT(c.deadline);
+      r.el.classList.toggle('warn',pct<50&&pct>=22);r.el.classList.toggle('crit',pct<22);}
+    else if(c.state==='flying'){r.bar.style.width='100%';r.tm.textContent='◉ 任务执行中';}
+    else{r.bar.style.width=c.state==='done'?'100%':'0%';r.tm.textContent='';}}
+
+  document.getElementById('whTank').textContent=Math.floor(pad.stock.tank);
+  document.getElementById('whEng').textContent=Math.floor(pad.stock.eng);
+  document.getElementById('whAvi').textContent=Math.floor(pad.stock.avi);
+  const asmEl=document.getElementById('asmState'),asmBar=document.querySelector('#asmBar i');
+  if(pad.asm){
+    const pct=pad.asm.t/CFG.asmDur*100;
+    const stage=pct<33?'吊装罐体':pct<55?'安装动力':pct<85?'航电与整流罩':'全检';
+    const rb=pad.asm.booster&&pad.asm.booster.flights>0?' · 复用「'+pad.asm.booster.name.split(' ·')[0]+'」':'';
+    asmEl.textContent='总装中 · '+stage+' '+pct.toFixed(0)+'%'+rb;
+    asmBar.style.width=pct+'%';
+  }else{asmEl.textContent='空闲';asmBar.style.width='0%';}
+  const orderBtn=document.getElementById('orderBtn');
+  orderBtn.disabled=pad.queue.length>=2||!!pad.asm;
+  const readyB=boosters.find(b=>b.status==='ready');
+  orderBtn.textContent=readyB?`下单 · 复用「${readyB.name.split(' ·')[0]}」免罐体+动力`:'下单 · 标准火箭 ×1';
+  document.getElementById('readyN').textContent=pad.queue.length;
+  document.getElementById('opsCost').textContent=fmtM(CFG.opsCost);
+  document.getElementById('probLine').textContent=(skill*100).toFixed(0)+'%';
+
+  const launchBtn=document.getElementById('launchBtn'),note=document.getElementById('btnNote');
+  if(selected&&selected.state==='open'){
+    const c=selected;
+    document.getElementById('selName').textContent=c.name;
+    document.getElementById('selRoute').textContent=`${c.station.name} · ${c.tons}.0t`;
+    let msg='',dis=false;
+    if(pad.queue.length<1){msg='无待命火箭 —— 下单并等待零件与总装';dis=true;}
+    else if(money<CFG.opsCost){msg='资金不足';dis=true;}
+    else if(padBusy()){msg='发射台占用中 —— 本单已选定,空闲后点火';dis=true;}
+    else msg=`苍鹭-${pad.launched+1} 与「${pad.queue[0].booster.name.split(' ·')[0]}」已就位 · 允许点火`;
+    note.textContent=msg;launchBtn.disabled=dis;
+  }else{
+    document.getElementById('selName').textContent='—';
+    document.getElementById('selRoute').textContent='—';
+    note.textContent=openN?'请选择一份合同':'等待新订单接入…';
+    launchBtn.disabled=true;}
+
+  if(lastRoutesVer!==routesVer){lastRoutesVer=routesVer;buildRouteRows();}
+  document.getElementById('netStat').textContent=`${routes.length} 条 · ${fmtM(stats.freight)}`;
+  for(const row of routeRows){
+    row.el.classList.toggle('blocked',row.r.blocked>0);
+    if(row.r.blocked>0){
+      row.stat.textContent=`⚠ 封锁中 ${Math.ceil(row.r.blocked)}s · 船队待命`;
+      row.stat.classList.add('haz');
+    }else{
+      row.stat.classList.remove('haz');
+      row.stat.textContent=`${row.r.ships.length}/${CFG.maxShips} 船 · 已运 ${row.r.delT.toFixed(0)}t · ${fmtM(row.r.delM)}`;}
+    row.add.disabled=row.r.ships.length>=CFG.maxShips||(!creator&&money<CFG.shipCost);}
+
+  if(wallVer!==boosters.length){wallVer=boosters.length;buildWall();}
+  for(const b of boosters){const r=wallRefs.get(b);if(!r)continue;
+    let txt,cls;
+    if(b.status==='installed'){txt='▣ 总装/待发射';cls='st-asm';r.rb.style.display='none';}
+    else if(b.status==='inflight'){txt='▲ 飞行中';cls='st-fly';r.rb.style.display='none';}
+    else if(b.status==='refurb'){txt='◐ 检修中';cls='st-ref';
+      r.rb.style.display='block';r.ri.style.width=clamp((1-b.refurbT/CFG.refurbTime)*100,0,100)+'%';}
+    else if(b.status==='ready'){txt='● 待命复用';cls='st-ready';r.rb.style.display='none';}
+    else{txt='✕ 损毁';cls='st-lost';r.rb.style.display='none';}
+    r.stt.textContent=txt;r.stt.className='stt '+cls;}
+  const lost=boosters.filter(b=>b.status==='lost').length;
+  document.getElementById('skillLine').textContent=(skill*100).toFixed(0)+'%';
+  document.getElementById('statLine').textContent=`${stats.launches} / ${stats.landings} / ${lost}`;
+
+  for(const id of UNLOCK_ORDER){const n=node(id),el=xBtnEls[id];
+    if(prog[id]){el.disabled=true;el.classList.add('done');el.classList.remove('lockd');}
+    else{el.disabled=false;el.classList.remove('done');
+      el.classList.toggle('lockd',(n.req&&!prog[n.req])||money<n.cost);}}
+  const xF=document.getElementById('xFuel');
+  if(prog.fuelUp){xF.disabled=true;xF.classList.add('done');}
+  else{xF.disabled=false;xF.classList.toggle('lockd',money<CFG.fuelUpCost);}
+  for(const id in TECHS){const el=techBtnEls[id],t=TECHS[id];
+    if(techs[id]){el.disabled=true;el.classList.add('done');el.classList.remove('lockd');}
+    else{el.disabled=false;el.classList.remove('done');
+      el.classList.toggle('lockd',(t.req&&!techs[t.req])||money<t.cost);}}
+  document.getElementById('techSub').textContent=
+    `SHIP R&D · 当前货舱 ${techCap}t · 推进加成 ×${(techSpeed*(prog.fuelUp?1.35:1)).toFixed(2)}`;
+  document.getElementById('creState').textContent=creator?'已开启':'关闭';
+  document.getElementById('creBtn').classList.toggle('cre',creator);
+
+  const mk=nodes.filter(n=>!n.locked&&n.mileGoal).map(n=>n.id).join()+(prog.mars?'|mars':'');
+  if(mk!==mileKey){mileKey=mk;buildMiles();}
+  for(const m of mileRefs){
+    const cur=m.n.id==='mars'?prog.colony:(m.n.mile||0);
+    const goal=m.n.id==='mars'?CFG.colonyGoal:m.n.mileGoal;
+    const done=m.n.id==='mars'?prog.colonyDone:m.n.mileDone;
+    m.bar.style.width=clamp(cur/goal*100,0,100)+'%';
+    m.txt.textContent=done?'✓ 达成':Math.floor(cur)+'/'+goal+'t';}
+
+  const banner=document.getElementById('banner');
+  const msgs=[];
+  if(meteorLeft>0)msgs.push(`⚠ 陨石雨 ${Math.ceil(meteorLeft)}s`);
+  if(stormLeft>0)msgs.push(`⚠ 太阳风暴 ${Math.ceil(stormLeft)}s`);
+  if(msgs.length){banner.textContent=msgs.join(' · ');banner.classList.add('show');}
+  else banner.classList.remove('show');
+
+  const barH=slowmo>0?'64px':'0px';
+  document.getElementById('cineT').style.height=barH;
+  document.getElementById('cineB').style.height=barH;
+  document.getElementById('cineTag').classList.toggle('show',slowmo>0);
+  updTip();
+}
+
+/* ── 交互 ── */
+function setMode(m){mode=m;routeSel=null;
+  document.getElementById('mLaunch').classList.toggle('on',m==='launch');
+  document.getElementById('mRoute').classList.toggle('on',m==='route');
+  cv.style.cursor=m==='route'?'crosshair':'default';SFX.tick();}
+function setSpeed(v){speed=v;
+  document.getElementById('s1').classList.toggle('on',v===1);
+  document.getElementById('s3').classList.toggle('on',v===3);
+  document.getElementById('s10').classList.toggle('on',v===10);SFX.tick();}
+function hitNode(x,y){for(const n of nodes){if(n.locked)continue;const p=nodePos(n);
+  if(Math.hypot(p.x-x,p.y-y)<24/cam.z+8)return n;}return null;}
+function updMouse(e){mouse.x=e.clientX;mouse.y=e.clientY;
+  const w=toWorld(mouse.x,mouse.y);mouse.wx=w.x;mouse.wy=w.y;
+  mouse.over=hitNode(w.x,w.y);}
+let panDrag=null,justPanned=false;
+cv.addEventListener('mousedown',e=>{
+  if(e.button===2||(e.button===0&&mode==='launch'))
+    panDrag={x:e.clientX,y:e.clientY,moved:false,btn:e.button};
+});
+addEventListener('mousemove',e=>{
+  if(panDrag){
+    const dx=e.clientX-panDrag.x,dy=e.clientY-panDrag.y;
+    if(Math.hypot(dx,dy)>4)panDrag.moved=true;
+    if(panDrag.moved){cam.ox+=e.movementX;cam.oy+=e.movementY;cv.style.cursor='grabbing';}}
+  updMouse(e);
+});
+addEventListener('mouseup',e=>{
+  if(panDrag){if(panDrag.moved){justPanned=true;cv.style.cursor=mode==='route'?'crosshair':'default';}
+    else if(panDrag.btn===2)routeSel=null;
+    panDrag=null;}
+});
+cv.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const f=e.deltaY<0?1.15:1/1.15;
+  const z2=clamp(cam.z*f,0.35,2.8);
+  const w=toWorld(e.clientX,e.clientY);
+  cam.ox=e.clientX-W/2-(w.x-W/2)*z2;
+  cam.oy=e.clientY-H/2-(w.y-H/2)*z2;
+  cam.z=z2;updMouse(e);
+},{passive:false});
+cv.addEventListener('dblclick',()=>{cam.ox=0;cam.oy=0;cam.z=1;});
+cv.addEventListener('click',e=>{
+  if(justPanned){justPanned=false;return;}
+  if(mode!=='route')return;
+  const w=toWorld(e.clientX,e.clientY);
+  const n=hitNode(w.x,w.y);
+  if(!n){routeSel=null;return;}
+  if(!routeSel){routeSel=n;SFX.tick();return;}
+  if(routeSel===n){routeSel=null;return;}
+  const err=routeRuleErr(routeSel,n);
+  if(err){SFX.deny();toast(err);return;}
+  if(!spend(CFG.routeCost)){SFX.deny();toast('资金不足 —— 开通航线需 '+fmtM(CFG.routeCost));return;}
+  if(routes.some(r=>r.a===routeSel&&r.b===n)){earn(CFG.routeCost);SFX.deny();toast('该方向航线已存在');return;}
+  stats.exp.route+=CFG.routeCost;
+  createRoute(routeSel,n);
+  SFX.route();log(`航线开通:${routeSel.name} → ${n.name}`,'good');
+});
+cv.addEventListener('contextmenu',e=>{e.preventDefault();});
+addEventListener('keydown',e=>{
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();keys.add(e.key);return;}
+  if(e.code==='Space'){e.preventDefault();launch();}
+  else if(e.key==='1')setSpeed(1);
+  else if(e.key==='3')setSpeed(3);
+  else if(e.key==='0')setSpeed(10);
+  else if(e.key==='p'||e.key==='P')document.getElementById('pause').click();
+  else if(e.key==='r'||e.key==='R')setMode(mode==='launch'?'route':'launch');
+  else if(e.key==='f'||e.key==='F')fitAll();
+  else if(e.key==='Escape'){routeSel=null;
+    document.getElementById('repOverlay').classList.remove('show');
+    document.getElementById('techOverlay').classList.remove('show');
+    document.getElementById('creOverlay').classList.remove('show');}
+});
+addEventListener('keyup',e=>keys.delete(e.key));
+document.getElementById('launchBtn').addEventListener('click',launch);
+document.getElementById('orderBtn').addEventListener('click',orderRocket);
+document.getElementById('mLaunch').addEventListener('click',()=>setMode('launch'));
+document.getElementById('mRoute').addEventListener('click',()=>setMode('route'));
+document.getElementById('s1').addEventListener('click',()=>setSpeed(1));
+document.getElementById('s3').addEventListener('click',()=>setSpeed(3));
+document.getElementById('s10').addEventListener('click',()=>setSpeed(10));
+document.getElementById('pause').addEventListener('click',()=>{paused=!paused;document.getElementById('pause').textContent=paused?'▶':'⏸';SFX.tick();});
+document.getElementById('mute').addEventListener('click',()=>{muted=!muted;document.getElementById('mute').textContent=muted?'✕':'♪';});
+document.getElementById('xFuel').addEventListener('click',()=>{
+  if(prog.fuelUp){SFX.deny();return;}
+  if(!spend(CFG.fuelUpCost)){SFX.deny();toast(`资金不足 —— 加注改造需 ${fmtM(CFG.fuelUpCost)}`);return;}
+  stats.exp.expand+=CFG.fuelUpCost;prog.fuelUp=true;
+  SFX.unlock();log('船队加注改造完成,全体货船航速 +35%','good');saveGame(true);
+});
+document.getElementById('techBtn').addEventListener('click',()=>{
+  document.getElementById('techOverlay').classList.add('show');SFX.tick();});
+document.getElementById('techClose').addEventListener('click',()=>{
+  document.getElementById('techOverlay').classList.remove('show');SFX.tick();});
+document.getElementById('repBtn').addEventListener('click',openReport);
+document.getElementById('repClose').addEventListener('click',()=>{document.getElementById('repOverlay').classList.remove('show');SFX.tick();});
+document.getElementById('creBtn').addEventListener('click',()=>{
+  document.getElementById('creOverlay').classList.add('show');SFX.tick();});
+document.getElementById('creClose').addEventListener('click',()=>{
+  document.getElementById('creOverlay').classList.remove('show');SFX.tick();});
+document.getElementById('creToggle').addEventListener('click',()=>{
+  if(!creator){preCreatorMoney=money;money=99999;creator=true;
+    toast('创造者模式开启 —— 资金无限');log('创造者模式开启','good');}
+  else{creator=false;money=Math.max(1,preCreatorMoney);
+    toast('创造者模式关闭 —— 资金已还原');log('创造者模式关闭');}
+  saveGame(true);});
+document.getElementById('cAllNode').addEventListener('click',()=>creAct(()=>{
+  for(const id of UNLOCK_ORDER){prog[id]=true;node(id).locked=false;}
+  log('全部星域已解锁','good');toast('九星全部接入轨道网');}));
+document.getElementById('cAllTech').addEventListener('click',()=>creAct(()=>{
+  for(const id in TECHS)techs[id]=true;applyTechs();prog.fuelUp=true;
+  log('全部研发完成','good');toast('舱容/推进满级 + 加注完成');}));
+document.getElementById('cParts').addEventListener('click',()=>creAct(()=>{
+  pad.stock={tank:4,eng:4,avi:4};toast('零件仓库已补满');}));
+document.getElementById('cRocket').addEventListener('click',()=>creAct(()=>{
+  if(pad.queue.length>=2){toast('发射位已满(上限 2)');return;}
+  const rb=boosters.find(b=>b.status==='ready');let b;
+  if(rb){rb.status='installed';b=rb;}else b=newBooster();
+  pad.queue.push({booster:b});
+  log(`「${b.name}」直接入列发射位`,'good');toast('火箭已入列');}));
+document.getElementById('cContract').addEventListener('click',()=>creAct(()=>{
+  genContract(false);}));
+document.getElementById('cRep').addEventListener('click',()=>creAct(()=>{
+  addRep(50);toast('声望 +50');}));
+document.getElementById('cMeteor').addEventListener('click',()=>creAct(()=>{
+  if(routes.length===0){toast('尚无可封锁的航线');return;}
+  const r=routes[Math.floor(Math.random()*routes.length)];
+  r.blocked=25;meteorLeft=Math.max(meteorLeft,25);SFX.alarm();
+  log(`⚠ (测试)陨石雨:「${r.a.name} → ${r.b.name}」封锁 25s`,'bad');}));
+document.getElementById('cStorm').addEventListener('click',()=>creAct(()=>{
+  const outers=routes.filter(r=>r.a.r()>RE*3.3||r.b.r()>RE*3.3);
+  if(outers.length===0){toast('没有外环航线可供封锁');return;}
+  stormLeft=Math.max(stormLeft,30);
+  outers.forEach(r=>r.blocked=Math.max(r.blocked,30));SFX.alarm();
+  log(`⚠ (测试)太阳风暴:${outers.length} 条外环航线封锁 30s`,'bad');}));
+document.getElementById('cClear').addEventListener('click',()=>creAct(()=>{
+  routes.forEach(r=>r.blocked=0);meteorLeft=0;stormLeft=0;
+  toast('全部封锁已解除');}));
+document.getElementById('cColony').addEventListener('click',()=>creAct(()=>{
+  if(!prog.mars){toast('需先解锁火星');return;}
+  prog.colony+=100;
+  if(prog.colony>=CFG.colonyGoal&&!prog.colonyDone)colonyFounded();
+  else toast('殖民进度 +100t');}));
+document.getElementById('again').addEventListener('click',()=>{localStorage.removeItem(SAVE_KEY);location.reload();});
+document.getElementById('ovGo').addEventListener('click',()=>{
+  document.getElementById('overlay').classList.remove('show');});
+
+let last=performance.now();
+function frame(now){
+  const rdt=Math.min(.05,(now-last)/1000);last=now;
+  if(!paused){
+    const sp=480*rdt;
+    if(keys.has('ArrowLeft'))cam.ox+=sp;
+    if(keys.has('ArrowRight'))cam.ox-=sp;
+    if(keys.has('ArrowUp'))cam.oy+=sp;
+    if(keys.has('ArrowDown'))cam.oy-=sp;
+  }
+  const ts=slowmo>0?0.3:1;
+  const dt=paused?0:rdt*speed*ts;
+  slowmo=Math.max(0,slowmo-rdt);
+  update(dt);render(now);ui();
+  requestAnimationFrame(frame);
+}
+
+resize();
+const loaded=loadGame();
+if(!loaded){
+  for(let i=0;i<3;i++)genContract(true);
+  log('引力物流 · 声望版上线');
+  log('交付合同攒声望:更大的吨位、更高的单价、加急单');
+  log('升级发现金授信 —— 合同面板顶部查看进度');
+  log('首批 3 份合同已入账 —— 选一份,点火');
+}else{
+  log('引力物流 · 声望版');log('存档已恢复,欢迎回来');toast('存档已恢复');
+}
+selected=contracts.find(c=>c.state==='open')||null;
+buildExpand();buildTech();refreshCards();
+document.getElementById('legend').innerHTML=
+  Object.values(CARGO).map(c=>`<span><i style="background:${c.col}"></i>${c.name}</span>`).join('')+
+  Object.values(PARTS).map(p=>`<span><i style="background:${p.col}"></i>${p.name}件</span>`).join('');
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
